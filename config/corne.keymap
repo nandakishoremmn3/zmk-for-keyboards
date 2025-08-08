@@ -93,10 +93,10 @@
 
         base {
             bindings = <
-&kp TAB    &kp Q           &kp W           &kp E         &kp R             &kp T        &kp Y  &kp U             &kp I          &kp O            &kp P               &kp BSPC
-&kp LCTRL  &hm LEFT_GUI A  &hm LEFT_ALT S  &hm LCTRL D   &hm LEFT_SHIFT F  &kp G        &kp H  &hm RSHIFT J      &hm RCTRL K    &hm RIGHT_ALT L  &hm RGUI SEMICOLON  &kp SQT
-&kp LSHFT  &kp Z           &kp X           &kp C         &kp V             &kp B        &kp N  &kp M             &kp COMMA      &kp DOT          &kp FSLH            &kp ESC
-                                           &lt 8 ESCAPE  &lt 1 SPACE       &lt 2 ENTER  &mo 3  &ltq 2 BACKSPACE  &kp BACKSPACE
+&kp TAB    &kp Q           &kp W           &kp E         &kp R             &kp T       &kp Y        &kp U             &kp I          &kp O            &kp P               &kp BSPC
+&kp LCTRL  &hm LEFT_GUI A  &hm LEFT_ALT S  &hm LCTRL D   &hm LEFT_SHIFT F  &kp G       &kp H        &hm RSHIFT J      &hm RCTRL K    &hm RIGHT_ALT L  &hm RGUI SEMICOLON  &kp SQT
+&kp LSHFT  &kp Z           &kp X           &kp C         &kp V             &kp B       &kp N        &kp M             &kp COMMA      &kp DOT          &kp FSLH            &kp ESC
+                                           &lt 8 ESCAPE  &lt 11 SPACE      &lt 13 TAB  &lt 9 ENTER  &lt 10 BACKSPACE  &lt 12 DELETE
             >;
         };
 
@@ -141,6 +141,51 @@
 &none  &kp LEFT_GUI  &kp LEFT_ALT  &kp LEFT_CONTROL  &kp LEFT_SHIFT  &none  &ext_power EP_TOG  &kp C_PREVIOUS    &kp C_VOL_DN     &kp C_VOL_UP     &kp C_NEXT                         &none
 &none  &none         &none         &none             &none           &none  &out OUT_TOG       &bt BT_SEL 0      &bt BT_SEL 1     &bt BT_SEL 2     &bt BT_SEL 3                       &none
                                    &none             &none           &none  &kp K_STOP         &kp K_PLAY_PAUSE  &kp K_MUTE
+            >;
+        };
+
+        sym {
+            bindings = <
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+                        &trans  &trans  &trans  &trans  &trans  &trans
+            >;
+        };
+
+        num {
+            bindings = <
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+                        &trans  &trans  &trans  &trans  &trans  &trans
+            >;
+        };
+
+        nav {
+            bindings = <
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+                        &trans  &trans  &trans  &trans  &trans  &trans
+            >;
+        };
+
+        fun {
+            bindings = <
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+                        &trans  &trans  &trans  &trans  &trans  &trans
+            >;
+        };
+
+        mouse {
+            bindings = <
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+                        &trans  &trans  &trans  &trans  &trans  &trans
             >;
         };
     };
