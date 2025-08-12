@@ -105,7 +105,7 @@
             bindings = <
 &none  &none         &none         &none             &none           &none  &rgb_ug RGB_TOG    &rgb_ug RGB_EFF   &rgb_ug RGB_HUI  &rgb_ug RGB_SAI  &rgb_ug RGB_COLOR_HSB(275,100,50)  &none
 &none  &kp LEFT_GUI  &kp LEFT_ALT  &kp LEFT_CONTROL  &kp LEFT_SHIFT  &none  &ext_power EP_TOG  &kp C_PREVIOUS    &kp C_VOL_DN     &kp C_VOL_UP     &kp C_NEXT                         &none
-&none  &none         &none         &none             &none           &none  &out OUT_TOG       &bt BT_SEL 0      &bt BT_SEL 1     &bt BT_SEL 2     &bt BT_SEL 3                       &none
+&none  &none         &none         &none             &none           &none  &out OUT_TOG       &bt BT_SEL 0      &bt BT_SEL 1     &bt BT_SEL 2     &bt BT_SEL 3                       &bt BT_CLR_ALL
                                    &none             &none           &none  &kp K_STOP         &kp K_PLAY_PAUSE  &kp K_MUTE
             >;
         };
