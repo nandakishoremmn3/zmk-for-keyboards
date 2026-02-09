@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Corne Keymap Viewer</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #1a1a2e;
+    color: #e0e0e0;
+    height: 100vh;
+    display: flex;
+    overflow: hidden;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    width: 240px;
+    background: #16213e;
+    border-right: 1px solid #0f3460;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+  .sidebar-header {
+    padding: 20px;
+    border-bottom: 1px solid #0f3460;
+  }
+  .sidebar-header h1 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #e94560;
+  }
+  .sidebar-header .subtitle {
+    font-size: 12px;
+    color: #8892b0;
+    margin-top: 4px;
+  }
+  .sidebar-section {
+    padding: 16px 12px 8px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #536390;
+  }
+  .layer-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 8px;
+  }
+  .layer-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 12px;
+    margin-bottom: 2px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: #8892b0;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: left;
+  }
+  .layer-btn:hover { background: #1a2744; color: #ccd6f6; }
+  .layer-btn.active {
+    background: #e94560;
+    color: white;
+    font-weight: 600;
+  }
+  .layer-btn .layer-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .layer-btn.active .layer-icon { background: rgba(255,255,255,0.2); }
+  .layer-btn:not(.active) .layer-icon { background: #1a2744; }
+  .layer-btn .layer-name { flex: 1; }
+  .layer-btn .layer-badge {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.1);
+  }
+
+  /* Legend */
+  .legend {
+    padding: 16px;
+    border-top: 1px solid #0f3460;
+  }
+  .legend-title {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #536390;
+    margin-bottom: 10px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    font-size: 12px;
+    color: #8892b0;
+  }
+  .legend-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+
+  /* Main content */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 24px;
+    background: #16213e;
+    border-bottom: 1px solid #0f3460;
+  }
+  .toolbar-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #ccd6f6;
+  }
+  .toolbar-info {
+    font-size: 12px;
+    color: #536390;
+  }
+  .keyboard-area {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    overflow: auto;
+  }
+  .keyboard-container {
+    position: relative;
+    width: 860px;
+    height: 340px;
+    flex-shrink: 0;
+  }
+
+  /* Keys */
+  .key {
+    position: absolute;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: default;
+    transition: all 0.15s;
+    border: 1px solid #2a3a5c;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+    user-select: none;
+  }
+  .key:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08);
+    border-color: #e94560;
+  }
+  .key .tap {
+    font-size: 13px;
+    font-weight: 600;
+    color: #e0e0e0;
+    text-align: center;
+    line-height: 1.2;
+  }
+  .key .hold {
+    font-size: 9px;
+    color: #e94560;
+    margin-top: 3px;
+    text-align: center;
+    line-height: 1.2;
+    font-weight: 500;
+  }
+
+  /* Key type colors */
+  .key-default { background: #1e2d4d; }
+  .key-mod { background: #1a3a2a; border-color: #2a5a3a; }
+  .key-layer { background: #3a1a3a; border-color: #5a2a5a; }
+  .key-held { background: #4a1a1a; border-color: #e94560; box-shadow: 0 0 12px rgba(233,69,96,0.3); }
+  .key-empty { background: #151d30; border-color: #3a4060; opacity: 0.7; }
+  .key-media { background: #1a2a4a; border-color: #2a4a6a; }
+  .key-nav { background: #2a2a1a; border-color: #4a4a2a; }
+  .key-symbol { background: #2a1a2a; border-color: #4a2a4a; }
+  .key-number { background: #1a2a2a; border-color: #2a4a4a; }
+  .key-fn { background: #2a2a2a; border-color: #4a4a4a; }
+  .key-bt { background: #0a2a4a; border-color: #0a4a7a; }
+  .key-rgb { background: #2a1a3a; border-color: #4a2a6a; }
+  .key-mouse { background: #3a2a1a; border-color: #5a4a2a; }
+
+  /* Combo indicators */
+  .combo {
+    position: absolute;
+    background: #0f3460;
+    border: 1px solid #e94560;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: #e94560;
+    z-index: 10;
+    box-shadow: 0 0 8px rgba(233,69,96,0.2);
+  }
+  .combo-line {
+    position: absolute;
+    height: 1px;
+    background: #e94560;
+    opacity: 0.3;
+    z-index: 9;
+  }
+
+  /* Key tooltip */
+  .key-tooltip {
+    display: none;
+    position: fixed;
+    background: #0a0f1e;
+    border: 1px solid #e94560;
+    border-radius: 8px;
+    padding: 12px 16px;
+    z-index: 100;
+    min-width: 180px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    pointer-events: none;
+  }
+  .key-tooltip.visible { display: block; }
+  .key-tooltip .tt-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+    font-size: 12px;
+  }
+  .key-tooltip .tt-row:last-child { margin-bottom: 0; }
+  .key-tooltip .tt-label { color: #536390; }
+  .key-tooltip .tt-value { color: #ccd6f6; font-weight: 600; }
+
+  /* Info panel at bottom */
+  .info-bar {
+    padding: 10px 24px;
+    background: #16213e;
+    border-top: 1px solid #0f3460;
+    display: flex;
+    gap: 24px;
+    font-size: 12px;
+    color: #536390;
+  }
+  .info-bar span { color: #8892b0; }
+
+  /* Cheat sheet panel */
+  .cheat-panel {
+    width: 0;
+    background: #16213e;
+    border-left: 1px solid #0f3460;
+    overflow-y: auto;
+    overflow-x: hidden;
+    transition: width 0.25s ease;
+    flex-shrink: 0;
+  }
+  .cheat-panel.open { width: 340px; }
+  .cheat-inner { padding: 20px; min-width: 300px; }
+  .cheat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .cheat-header h2 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #ccd6f6;
+  }
+  .cheat-close {
+    background: none;
+    border: none;
+    color: #536390;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+  }
+  .cheat-close:hover { background: #1a2744; color: #e0e0e0; }
+  .cheat-section {
+    margin-bottom: 18px;
+  }
+  .cheat-section-title {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #e94560;
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #0f3460;
+  }
+  .cheat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    font-size: 12px;
+    border-bottom: 1px solid rgba(15,52,96,0.4);
+  }
+  .cheat-row:last-child { border-bottom: none; }
+  .cheat-action { color: #8892b0; flex: 1; }
+  .cheat-keys {
+    display: flex;
+    gap: 3px;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .cheat-kbd {
+    background: #1e2d4d;
+    border: 1px solid #2a3a5c;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 10px;
+    font-weight: 600;
+    color: #ccd6f6;
+    font-family: monospace;
+    white-space: nowrap;
+  }
+  .cheat-kbd.mod { background: #1a3a2a; border-color: #2a5a3a; color: #6ee7b7; }
+  .cheat-kbd.layer { background: #3a1a3a; border-color: #5a2a5a; color: #c084fc; }
+  .cheat-plus { color: #536390; font-size: 10px; }
+  .cheat-toggle {
+    background: #e94560;
+    border: none;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .cheat-toggle:hover { background: #d63851; }
+  .cheat-filter {
+    width: 100%;
+    padding: 8px 10px;
+    background: #0a0f1e;
+    border: 1px solid #0f3460;
+    border-radius: 6px;
+    color: #ccd6f6;
+    font-size: 12px;
+    margin-bottom: 14px;
+    outline: none;
+  }
+  .cheat-filter:focus { border-color: #e94560; }
+  .cheat-filter::placeholder { color: #536390; }
+
+  /* Raw data table */
+  .raw-panel {
+    background: #0a0f1e;
+    border-top: 1px solid #0f3460;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+  .raw-panel.open { max-height: 400px; overflow-y: auto; }
+  .raw-toggle {
+    background: none;
+    border: 1px solid #0f3460;
+    color: #8892b0;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+  }
+  .raw-toggle:hover { border-color: #e94560; color: #ccd6f6; }
+  .raw-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+    font-family: monospace;
+  }
+  .raw-table th {
+    background: #16213e;
+    color: #536390;
+    text-align: left;
+    padding: 6px 10px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    position: sticky;
+    top: 0;
+  }
+  .raw-table td {
+    padding: 4px 10px;
+    border-bottom: 1px solid #0f3460;
+    color: #8892b0;
+  }
+  .raw-table tr:hover td { background: #1a2744; color: #ccd6f6; }
+  .raw-table .raw-pos { color: #536390; width: 30px; }
+  .raw-table .raw-tap { color: #ccd6f6; font-weight: 600; }
+  .raw-table .raw-hold { color: #e94560; }
+  .raw-table .raw-type { color: #a855f7; }
+  .raw-table .raw-side { color: #536390; font-size: 10px; }
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="sidebar-header">
+    <h1>Corne Keymap</h1>
+    <div class="subtitle">42 keys &middot; 7 layers &middot; 8 combos</div>
+  </div>
+  <div class="sidebar-section">Layers</div>
+  <div class="layer-list" id="layerList"></div>
+  <div class="legend">
+    <div class="legend-title">Legend</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#1e2d4d;border:1px solid #2a3a5c"></div> Regular key</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#1a3a2a;border:1px solid #2a5a3a"></div> Modifier (hold)</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#3a1a3a;border:1px solid #5a2a5a"></div> Layer switch</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#4a1a1a;border:1px solid #e94560"></div> Held / Active layer</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#151d30;border:1px solid #1e2a40;opacity:0.5"></div> Transparent / None</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#0f3460;border:1px solid #e94560"></div> Combo</div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="toolbar">
+    <div class="toolbar-title" id="toolbarTitle">base</div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="toolbar-info">Corne &middot; Nice!Nano v2 &middot; ZMK</div>
+      <button class="cheat-toggle" onclick="toggleCheatSheet()">Cheat Sheet</button>
+    </div>
+  </div>
+  <div class="keyboard-area">
+    <div class="keyboard-container" id="keyboard"></div>
+  </div>
+  <div class="info-bar">
+    <div>Board: <span>Nice!Nano v2</span></div>
+    <div>Shield: <span>Corne (split)</span></div>
+    <div>Bluetooth: <span>4 profiles</span></div>
+    <div>RGB: <span>27 LEDs</span></div>
+    <div>Home Row Mods: <span>200ms tap</span></div>
+    <button class="raw-toggle" onclick="toggleRawPanel()">Raw Data</button>
+  </div>
+  <div class="raw-panel" id="rawPanel">
+    <table class="raw-table" id="rawTable"></table>
+  </div>
+</div>
+
+<div class="cheat-panel" id="cheatPanel">
+  <div class="cheat-inner" id="cheatInner"></div>
+</div>
+
+<div class="key-tooltip" id="tooltip"></div>
+
+<script>
+const KW = 54, KH = 54, GAP = 4;
+const SPLIT_GAP = 220;
+
+// Physical positions for 42 keys.
+// ZMK keymap order: left row 0, RIGHT row 0, left row 1, RIGHT row 1, left row 2, RIGHT row 2, left thumbs, right thumbs
+const colOffsetsL = [0, 0, -14, -21, -14, -7];
+const colOffsetsR = [-7, -14, -21, -14, 0, 0]; // mirrored
+const positions = [];
+
+for (let row = 0; row < 3; row++) {
+  // Left half 6 keys
+  for (let col = 0; col < 6; col++) {
+    positions.push({ x: col * 56, y: row * 56 + colOffsetsL[col], w: KW, h: KH, rot: 0 });
+  }
+  // Right half 6 keys
+  for (let col = 0; col < 6; col++) {
+    positions.push({ x: 500 + col * 56, y: row * 56 + colOffsetsR[col], w: KW, h: KH, rot: 0 });
+  }
+}
+// Left thumb keys (3)
+positions.push({ x: 196, y: 180, w: KW, h: KH, rot: 0 });
+positions.push({ x: 252, y: 190, w: KW, h: KH, rot: 13 });
+positions.push({ x: 312, y: 198, w: KW, h: 72, rot: 26 });
+// Right thumb keys (3)
+positions.push({ x: 460, y: 198, w: KW, h: 72, rot: -26 });
+positions.push({ x: 520, y: 190, w: KW, h: KH, rot: -13 });
+positions.push({ x: 576, y: 180, w: KW, h: KH, rot: 0 });
+
+const layers = {
+  base: {
+    icon: "B", color: "#e94560",
+    keys: [
+      {t:"TAB"},{t:"Q"},{t:"W"},{t:"E"},{t:"R"},{t:"T"},
+      {t:"Y"},{t:"U"},{t:"I"},{t:"O"},{t:"P"},{t:"BSPC"},
+      {t:"LCTRL"},{t:"A",h:"CMD"},{t:"S",h:"OPT"},{t:"D",h:"CTRL"},{t:"F",h:"SHIFT"},{t:"G"},
+      {t:"H"},{t:"J",h:"SHIFT"},{t:"K",h:"CTRL"},{t:"L",h:"OPT"},{t:";",h:"CMD"},{t:"'"},
+      {t:"LSHFT"},{t:"Z"},{t:"X"},{t:"C"},{t:"V"},{t:"B"},
+      {t:"N"},{t:"M"},{t:","},{t:"."},{t:"/"},{t:"ESC"},
+      {t:"ESC",h:"media",type:"layer"},{t:"SPACE",h:"nav",type:"layer"},{t:"TAB",h:"mouse",type:"layer"},
+      {t:"ENTER",h:"sym",type:"layer"},{t:"BSPC",h:"num",type:"layer"},{t:"DEL",h:"fun",type:"layer"}
+    ]
+  },
+  media: {
+    icon: "M", color: "#f6a623",
+    keys: [
+      {},{t:"BT CLR\nALL",type:"bt"},{},{},{},{},
+      {t:"RGB\nTOG",type:"rgb"},{t:"RGB\nEFF",type:"rgb"},{t:"RGB\nHUE+",type:"rgb"},{t:"RGB\nSAT+",type:"rgb"},{t:"RGB\nCOLOR",type:"rgb"},{},
+      {},{t:"LGUI",type:"mod"},{t:"LALT",type:"mod"},{t:"LCTRL",type:"mod"},{t:"LSHIFT",type:"mod"},{},
+      {t:"EP TOG",type:"media"},{t:"PREV",type:"media"},{t:"VOL-",type:"media"},{t:"VOL+",type:"media"},{t:"NEXT",type:"media"},{},
+      {},{},{},{},{},{},
+      {t:"OUT\nTOG"},{t:"BT 0",type:"bt"},{t:"BT 1",type:"bt"},{t:"BT 2",type:"bt"},{t:"BT 3",type:"bt"},{t:"BT CLR\nALL",type:"bt"},
+      {type:"held"},{},{},
+      {t:"STOP",type:"media"},{t:"PLAY\nPAUSE",type:"media"},{t:"MUTE",type:"media"}
+    ]
+  },
+  sym: {
+    icon: "S", color: "#a855f7",
+    keys: [
+      {},{t:"{",type:"sym"},{t:"&",type:"sym"},{t:"*",type:"sym"},{t:"(",type:"sym"},{t:"}",type:"sym"},
+      {},{},{},{},{},{},
+      {},{t:":",type:"sym"},{t:"$",type:"sym"},{t:"%",type:"sym"},{t:"^",type:"sym"},{t:"+",type:"sym"},
+      {},{t:"RSHFT",type:"mod"},{t:"RCTRL",type:"mod"},{t:"RALT",type:"mod"},{t:"RGUI",type:"mod"},{},
+      {},{t:"~",type:"sym"},{t:"!",type:"sym"},{t:"@",type:"sym"},{t:"#",type:"sym"},{t:"|",type:"sym"},
+      {},{},{},{},{},{},
+      {t:"(",type:"sym"},{t:")",type:"sym"},{t:"_",type:"sym"},
+      {type:"held"},{},{}
+    ]
+  },
+  num: {
+    icon: "N", color: "#06b6d4",
+    keys: [
+      {},{t:"[",type:"num"},{t:"7",type:"num"},{t:"8",type:"num"},{t:"9",type:"num"},{t:"]",type:"num"},
+      {},{},{},{},{},{},
+      {},{t:";",type:"num"},{t:"4",type:"num"},{t:"5",type:"num"},{t:"6",type:"num"},{t:"=",type:"num"},
+      {},{t:"RSHFT",type:"mod"},{t:"RCTRL",type:"mod"},{t:"RALT",type:"mod"},{t:"RGUI",type:"mod"},{},
+      {},{t:"`",type:"num"},{t:"1",type:"num"},{t:"2",type:"num"},{t:"3",type:"num"},{t:"\\",type:"num"},
+      {},{},{},{},{},{},
+      {t:".",type:"num"},{t:"0",type:"num"},{t:"-",type:"num"},
+      {},{type:"held"},{}
+    ]
+  },
+  nav: {
+    icon: "V", color: "#eab308",
+    keys: [
+      {},{},{},{},{},{},
+      {t:"REDO",type:"nav"},{t:"PASTE",type:"nav"},{t:"COPY",type:"nav"},{t:"CUT",type:"nav"},{t:"UNDO",type:"nav"},{},
+      {},{t:"LGUI",type:"mod"},{t:"LALT",type:"mod"},{t:"LCTRL",type:"mod"},{t:"LSHIFT",type:"mod"},{},
+      {t:"CAPS",type:"nav"},{t:"\u2190",type:"nav"},{t:"\u2193",type:"nav"},{t:"\u2191",type:"nav"},{t:"\u2192",type:"nav"},{},
+      {},{},{},{},{},{},
+      {t:"INS",type:"nav"},{t:"HOME",type:"nav"},{t:"PGDN",type:"nav"},{t:"PGUP",type:"nav"},{t:"END",type:"nav"},{},
+      {},{type:"held"},{},
+      {t:"ENTER"},{t:"BSPC"},{t:"DEL"}
+    ]
+  },
+  fun: {
+    icon: "F", color: "#22c55e",
+    keys: [
+      {},{t:"F12",type:"fn"},{t:"F7",type:"fn"},{t:"F8",type:"fn"},{t:"F9",type:"fn"},{},
+      {},{},{},{},{},{},
+      {},{t:"F11",type:"fn"},{t:"F4",type:"fn"},{t:"F5",type:"fn"},{t:"F6",type:"fn"},{},
+      {},{t:"RSHFT",type:"mod"},{t:"RCTRL",type:"mod"},{t:"RALT",type:"mod"},{t:"RGUI",type:"mod"},{},
+      {},{t:"F10",type:"fn"},{t:"F1",type:"fn"},{t:"F2",type:"fn"},{t:"F3",type:"fn"},{},
+      {},{},{},{},{},{},
+      {},{t:"SPACE"},{t:"TAB"},
+      {},{},{type:"held"}
+    ]
+  },
+  mouse: {
+    icon: "P", color: "#f97316",
+    keys: [
+      {},{},{},{},{},{},
+      {t:"REDO",type:"nav"},{t:"PASTE",type:"nav"},{t:"COPY",type:"nav"},{t:"CUT",type:"nav"},{t:"UNDO",type:"nav"},{},
+      {},{t:"LGUI",type:"mod"},{t:"LALT",type:"mod"},{t:"LCTRL",type:"mod"},{t:"LSHIFT",type:"mod"},{},
+      {t:"\u2190",type:"mouse"},{t:"\u2193",type:"mouse"},{t:"\u2191",type:"mouse"},{t:"\u2192",type:"mouse"},{},{},
+      {},{},{},{},{},{},
+      {},{},{},{},{},{},
+      {},{},{type:"held"},
+      {t:"RCLK",type:"mouse"},{t:"LCLK",type:"mouse"},{t:"MCLK",type:"mouse"}
+    ]
+  }
+};
+
+// Combos: positioned dynamically between key pairs
+const combosDef = [
+  { keys: [3,4], label: "[" },
+  { keys: [7,8], label: "]" },  // 7=U(right row0 col1), 8=I(right row0 col2)
+  { keys: [15,16], label: "(" }, // 15=D, 16=F
+  { keys: [19,20], label: ")" }, // 19=J, 20=K
+  { keys: [27,28], label: "{" }, // 27=C, 28=V
+  { keys: [31,32], label: "}" }, // 31=M(right), 32=comma
+  { keys: [5,6], label: "\\", wide: true },   // 5=T, 6=Y (across split)
+  { keys: [17,18], label: "|", wide: true },   // 17=G, 18=H (across split)
+];
+
+const layerDescriptions = {
+  base: "Default QWERTY with home row mods",
+  media: "Media controls, RGB, Bluetooth",
+  sym: "Symbols and special characters",
+  num: "Number pad and math operators",
+  nav: "Navigation, arrows, clipboard",
+  fun: "Function keys F1-F12",
+  mouse: "Mouse movement and clicks"
+};
+
+let currentLayer = 'base';
+
+function getKeyClass(key) {
+  if (!key || (!key.t && !key.type)) return 'key-empty';
+  if (key.type === 'held') return 'key-held';
+  if (key.type === 'layer') return 'key-layer';
+  if (key.type === 'mod') return 'key-mod';
+  if (key.type === 'bt') return 'key-bt';
+  if (key.type === 'rgb') return 'key-rgb';
+  if (key.type === 'media') return 'key-media';
+  if (key.type === 'nav') return 'key-nav';
+  if (key.type === 'sym') return 'key-symbol';
+  if (key.type === 'num') return 'key-number';
+  if (key.type === 'fn') return 'key-fn';
+  if (key.type === 'mouse') return 'key-mouse';
+  if (key.h && !key.type) return 'key-mod';
+  return 'key-default';
+}
+
+function renderLayerList() {
+  const list = document.getElementById('layerList');
+  list.innerHTML = '';
+  Object.entries(layers).forEach(([name, layer], i) => {
+    const btn = document.createElement('button');
+    btn.className = `layer-btn ${name === currentLayer ? 'active' : ''}`;
+    btn.innerHTML = `
+      <div class="layer-icon" style="color:${layer.color}">${layer.icon}</div>
+      <div class="layer-name">${name}</div>
+      <div class="layer-badge">${i}</div>
+    `;
+    btn.onclick = () => switchLayer(name);
+    list.appendChild(btn);
+  });
+}
+
+function renderKeyboard() {
+  const kb = document.getElementById('keyboard');
+  kb.innerHTML = '';
+  const layer = layers[currentLayer];
+
+  // Render keys
+  layer.keys.forEach((key, i) => {
+    const pos = positions[i];
+    if (!pos) return;
+
+    const el = document.createElement('div');
+    el.className = `key ${getKeyClass(key)}`;
+
+    let style = `left:${pos.x}px;top:${pos.y}px;width:${pos.w}px;height:${pos.h}px;`;
+    if (pos.rot) {
+      style += `transform:rotate(${pos.rot}deg);transform-origin:center center;`;
+    }
+    el.style.cssText = style;
+
+    if (key && (key.t || key.type === 'held')) {
+      const tapText = key.t || '';
+      const holdText = key.h || '';
+
+      if (key.type === 'held') {
+        el.innerHTML = '<div class="tap" style="font-size:18px;color:#e94560">&#9679;</div>';
+      } else {
+        let tapHtml = tapText.split('\n').map(l => `<div>${l}</div>`).join('');
+        el.innerHTML = `<div class="tap">${tapHtml}</div>`;
+        if (holdText) {
+          el.innerHTML += `<div class="hold">${holdText}</div>`;
+        }
+      }
+    }
+
+    // Tooltip
+    el.addEventListener('mouseenter', (e) => showTooltip(e, key, i));
+    el.addEventListener('mouseleave', hideTooltip);
+
+    kb.appendChild(el);
+  });
+
+  // Render combos — compute position midpoint between the two keys, offset above
+  combosDef.forEach(combo => {
+    const p1 = positions[combo.keys[0]];
+    const p2 = positions[combo.keys[1]];
+    if (!p1 || !p2) return;
+    const midX = (p1.x + p2.x) / 2 + KW / 2 - 15; // center the 30px combo box
+    const midY = Math.min(p1.y, p2.y) - 30; // sit above the keys
+    const el = document.createElement('div');
+    el.className = 'combo';
+    el.style.cssText = `left:${midX}px;top:${midY}px;width:30px;height:22px;font-size:11px;`;
+    el.textContent = combo.label;
+    kb.appendChild(el);
+  });
+
+  document.getElementById('toolbarTitle').textContent = `${currentLayer} — ${layerDescriptions[currentLayer]}`;
+}
+
+function showTooltip(e, key, idx) {
+  if (!key || (!key.t && !key.type)) return;
+  const tt = document.getElementById('tooltip');
+  let html = '';
+  if (key.t) html += `<div class="tt-row"><span class="tt-label">Tap</span><span class="tt-value">${key.t.replace(/\n/g,' ')}</span></div>`;
+  if (key.h) html += `<div class="tt-row"><span class="tt-label">Hold</span><span class="tt-value">${key.h}</span></div>`;
+  if (key.type === 'held') html += `<div class="tt-row"><span class="tt-label">State</span><span class="tt-value" style="color:#e94560">Active layer key</span></div>`;
+  if (key.type) html += `<div class="tt-row"><span class="tt-label">Type</span><span class="tt-value">${key.type}</span></div>`;
+  html += `<div class="tt-row"><span class="tt-label">Position</span><span class="tt-value">#${idx}</span></div>`;
+  tt.innerHTML = html;
+  tt.classList.add('visible');
+
+  const rect = e.target.getBoundingClientRect();
+  tt.style.left = (rect.right + 12) + 'px';
+  tt.style.top = (rect.top) + 'px';
+}
+
+function hideTooltip() {
+  document.getElementById('tooltip').classList.remove('visible');
+}
+
+function switchLayer(name) {
+  currentLayer = name;
+  renderLayerList();
+  renderKeyboard();
+  if (document.getElementById('rawPanel').classList.contains('open')) renderRawTable();
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+  // ? or Shift+/ toggles cheat sheet
+  if (e.key === '?' || (e.key === '/' && e.shiftKey)) {
+    e.preventDefault();
+    toggleCheatSheet();
+    return;
+  }
+  // Escape closes cheat sheet if open
+  if (e.key === 'Escape' && document.getElementById('cheatPanel').classList.contains('open')) {
+    toggleCheatSheet();
+    return;
+  }
+  // Don't handle layer shortcuts when typing in filter
+  if (e.target.tagName === 'INPUT') return;
+  const layerNames = Object.keys(layers);
+  const num = parseInt(e.key);
+  if (num >= 0 && num < layerNames.length) {
+    switchLayer(layerNames[num]);
+  }
+  if (e.key === 'ArrowDown' || e.key === 'j') {
+    const idx = layerNames.indexOf(currentLayer);
+    switchLayer(layerNames[(idx + 1) % layerNames.length]);
+  }
+  if (e.key === 'ArrowUp' || e.key === 'k') {
+    const idx = layerNames.indexOf(currentLayer);
+    switchLayer(layerNames[(idx - 1 + layerNames.length) % layerNames.length]);
+  }
+});
+
+// --- Cheat Sheet Engine: programmatically derives shortcuts from keymap data ---
+
+function analyzeKeymap() {
+  const sections = [];
+
+  // 1. Find all home row mods on base layer (keys with .h property)
+  const baseMods = [];
+  layers.base.keys.forEach((k, i) => {
+    if (k.h && k.t && k.type !== 'layer') {
+      baseMods.push({ tap: k.t, mod: k.h, pos: i, side: i < 18 ? 'left' : 'right' });
+    }
+  });
+
+  // 2. Find all layer-tap thumb keys
+  const layerTaps = [];
+  layers.base.keys.forEach((k, i) => {
+    if (k.type === 'layer') {
+      layerTaps.push({ tap: k.t, layer: k.h, pos: i, side: i < 39 ? 'left' : 'right' });
+    }
+  });
+
+  // 3. Build "Layer Access" section
+  const layerRows = layerTaps.map(lt => ({
+    action: `Activate ${lt.layer} layer`,
+    keys: [{ label: `Hold ${lt.tap}`, cls: 'layer' }],
+    note: `${lt.side} thumb → tap for ${lt.tap}, hold for ${lt.layer}`
+  }));
+  sections.push({ title: 'Layer Access (Thumb Keys)', rows: layerRows });
+
+  // 4. Build "Home Row Mods" section
+  const modRows = baseMods.map(m => ({
+    action: `${m.mod}`,
+    keys: [{ label: `Hold ${m.tap}`, cls: 'mod' }],
+    note: `${m.side} hand home row`
+  }));
+  sections.push({ title: 'Home Row Modifiers (Hold to Activate)', rows: modRows });
+
+  // 5. Build common OS shortcuts by combining base mods with base keys
+  const commonTargets = [
+    // Cmd + key
+    { action: 'Copy', mod: 'CMD', tap: 'C' },
+    { action: 'Paste', mod: 'CMD', tap: 'V' },
+    { action: 'Cut', mod: 'CMD', tap: 'X' },
+    { action: 'Undo', mod: 'CMD', tap: 'Z' },
+    { action: 'Save', mod: 'CMD', tap: 'S' },
+    { action: 'Find', mod: 'CMD', tap: 'F' },
+    { action: 'New Tab', mod: 'CMD', tap: 'T' },
+    { action: 'Close Tab', mod: 'CMD', tap: 'W' },
+    { action: 'Quit App', mod: 'CMD', tap: 'Q' },
+    { action: 'App Switcher', mod: 'CMD', tap: 'TAB' },
+    { action: 'Spotlight', mod: 'CMD', tap: 'SPACE' },
+    { action: 'Select All', mod: 'CMD', tap: 'A' },
+    { action: 'Bold', mod: 'CMD', tap: 'B' },
+    { action: 'Refresh', mod: 'CMD', tap: 'R' },
+    // Cmd + Shift + key
+    { action: 'Redo', mod: 'CMD+SHIFT', tap: 'Z' },
+    { action: 'Save As', mod: 'CMD+SHIFT', tap: 'S' },
+    { action: 'Paste Plain', mod: 'CMD+SHIFT', tap: 'V' },
+    { action: 'Copy (DevTools/Style)', mod: 'CMD+SHIFT', tap: 'C' },
+    { action: 'Reopen Closed Tab', mod: 'CMD+SHIFT', tap: 'T' },
+    { action: 'Incognito Window', mod: 'CMD+SHIFT', tap: 'N' },
+    { action: 'Screenshot Area', mod: 'CMD+SHIFT', tap: '4' },
+    { action: 'Screenshot Screen', mod: 'CMD+SHIFT', tap: '3' },
+    // Cmd + Opt + key
+    { action: 'DevTools', mod: 'CMD+OPT', tap: 'I' },
+    { action: 'JS Console', mod: 'CMD+OPT', tap: 'J' },
+    { action: 'Force Quit', mod: 'CMD+OPT', tap: 'ESC' },
+    // Ctrl + key
+    { action: 'Terminal: Clear', mod: 'CTRL', tap: 'L' },
+    { action: 'Terminal: Cancel', mod: 'CTRL', tap: 'C' },
+    { action: 'Terminal: EOF', mod: 'CTRL', tap: 'D' },
+  ];
+
+  const shortcutRows = [];
+  commonTargets.forEach(ct => {
+    const mods = ct.mod.split('+');
+    const modKeys = [];
+    const warnings = [];
+
+    mods.forEach(m => {
+      // Normalize mod name to match keymap's .h values
+      const modAliases = {
+        'CMD': ['CMD'],
+        'SHIFT': ['SHIFT'],
+        'CTRL': ['CTRL'],
+        'OPT': ['OPT'],
+      };
+      const aliases = modAliases[m] || [m];
+
+      // Find a mod key that matches any alias
+      const candidates = baseMods.filter(bm => aliases.includes(bm.mod));
+      // Prefer the mod on opposite side from tap target
+      const tapKey = layers.base.keys.findIndex(k => k.t === ct.tap);
+      const tapSide = tapKey < 18 ? 'left' : 'right';
+      let pick = candidates.find(c => c.side !== tapSide) || candidates[0];
+
+      if (pick && pick.tap === ct.tap) {
+        pick = candidates.find(c => c.tap !== ct.tap);
+        if (pick) {
+          warnings.push(`Use ${pick.side} ${pick.mod} (${pick.tap}) since ${ct.tap} is also ${m}`);
+        } else {
+          warnings.push(`Conflict: ${ct.tap} is the ${m} key itself`);
+        }
+      }
+
+      if (pick) {
+        modKeys.push({ label: `Hold ${pick.tap}`, cls: 'mod' });
+      }
+    });
+
+    // For screenshot combos with numbers, find via num layer
+    if (/^\d$/.test(ct.tap)) {
+      const numActivator = layerTaps.find(lt => lt.layer === 'num');
+      if (numActivator) {
+        const numLayer = layers.num;
+        const numKeyIdx = numLayer.keys.findIndex(k => k.t === ct.tap);
+        if (numKeyIdx >= 0) {
+          const baseAtPos = layers.base.keys[numKeyIdx];
+          modKeys.push({ label: `Hold ${numActivator.tap}`, cls: 'layer' });
+          warnings.push(`${ct.tap} is on num layer: Hold ${numActivator.tap} thumb + ${baseAtPos ? baseAtPos.t : 'pos ' + numKeyIdx}`);
+        }
+      }
+    }
+
+    // Find the tap target — could be base key or thumb key
+    let tapLabel = ct.tap;
+    const thumbMatch = layerTaps.find(lt => lt.tap === ct.tap);
+    if (thumbMatch) {
+      tapLabel = `Tap ${ct.tap} thumb`;
+    }
+
+    const keys = [...modKeys, { label: tapLabel, cls: '' }];
+    const row = { action: ct.action, keys, note: warnings.join('. ') };
+    shortcutRows.push(row);
+  });
+  sections.push({ title: 'Common Shortcuts (macOS)', rows: shortcutRows });
+
+  // 6. For each non-base layer, find notable keys and how to reach them
+  Object.entries(layers).forEach(([name, layer]) => {
+    if (name === 'base') return;
+    const activator = layerTaps.find(lt => lt.layer === name);
+    if (!activator) return;
+
+    const notableKeys = [];
+    // Find all non-empty, non-mod keys in this layer
+    layer.keys.forEach((k, i) => {
+      if (!k.t || k.type === 'mod' || k.type === 'held') return;
+      // Find what base key is at this position
+      const baseKey = layers.base.keys[i];
+      const baseLabel = baseKey && baseKey.t ? baseKey.t : `pos ${i}`;
+      notableKeys.push({
+        action: k.t.replace(/\n/g, ' '),
+        keys: [
+          { label: `Hold ${activator.tap}`, cls: 'layer' },
+          { label: baseLabel, cls: '' }
+        ]
+      });
+    });
+
+    if (notableKeys.length > 0) {
+      sections.push({ title: `${name} layer (Hold ${activator.tap} thumb)`, rows: notableKeys });
+    }
+  });
+
+  // 7. Cross-layer combos: mod + layer key (e.g., Cmd+Arrow)
+  const crossRows = [];
+  // Find layers that have mods on left and actions on right (or vice versa)
+  Object.entries(layers).forEach(([name, layer]) => {
+    if (name === 'base') return;
+    const activator = layerTaps.find(lt => lt.layer === name);
+    if (!activator) return;
+
+    const layerMods = [];
+    const layerActions = [];
+    layer.keys.forEach((k, i) => {
+      if (k.type === 'mod' && k.t) {
+        const modName = k.t.replace(/^[LR]/, '').replace('GUI', 'CMD').replace('ALT', 'OPT').replace('SHFT', 'SHIFT');
+        layerMods.push({ mod: modName, pos: i });
+      }
+      if (k.type === 'nav' || k.type === 'mouse') {
+        layerActions.push({ action: k.t, pos: i });
+      }
+    });
+
+    if (layerMods.length && layerActions.length) {
+      // Generate interesting combos
+      const interestingMods = layerMods.filter(m => m.mod === 'CMD' || m.mod === 'SHIFT');
+      interestingMods.forEach(mod => {
+        layerActions.slice(0, 6).forEach(act => {
+          const baseKeyAtMod = layers.base.keys[mod.pos];
+          const baseKeyAtAct = layers.base.keys[act.pos];
+          crossRows.push({
+            action: `${mod.mod}+${act.action}`,
+            keys: [
+              { label: `Hold ${activator.tap}`, cls: 'layer' },
+              { label: `Hold ${baseKeyAtMod ? baseKeyAtMod.t : '?'}`, cls: 'mod' },
+              { label: baseKeyAtAct ? baseKeyAtAct.t : '?', cls: '' }
+            ]
+          });
+        });
+      });
+    }
+  });
+  if (crossRows.length > 0) {
+    sections.push({ title: 'Modifier + Layer Combos (e.g. Cmd+Arrow)', rows: crossRows });
+  }
+
+  // 8. Combos section
+  const comboRows = combos.map(c => {
+    const k1 = layers.base.keys[c.keys[0]];
+    const k2 = layers.base.keys[c.keys[1]];
+    return {
+      action: `${c.label}`,
+      keys: [
+        { label: k1 ? k1.t : '?', cls: '' },
+        { label: k2 ? k2.t : '?', cls: '' }
+      ],
+      note: 'Press both simultaneously'
+    };
+  });
+  sections.push({ title: 'Combos (Press Both Keys Together)', rows: comboRows });
+
+  return sections;
+}
+
+function renderCheatSheet(filter) {
+  const panel = document.getElementById('cheatInner');
+  const sections = analyzeKeymap();
+  const q = (filter || '').toLowerCase().trim();
+
+  let html = `
+    <div class="cheat-header">
+      <h2>Cheat Sheet</h2>
+      <button class="cheat-close" onclick="toggleCheatSheet()">&times;</button>
+    </div>
+    <input class="cheat-filter" id="cheatFilter" type="text" placeholder="Search shortcuts..." value="${q}" oninput="renderCheatSheet(this.value)">
+  `;
+
+  sections.forEach(sec => {
+    const filteredRows = sec.rows.filter(r => {
+      if (!q) return true;
+      const text = r.action.toLowerCase() + ' ' + r.keys.map(k => k.label.toLowerCase()).join(' ') + ' ' + (r.note || '').toLowerCase();
+      return text.includes(q);
+    });
+    if (filteredRows.length === 0) return;
+
+    html += `<div class="cheat-section"><div class="cheat-section-title">${sec.title}</div>`;
+    filteredRows.forEach(r => {
+      const keysHtml = r.keys.map((k, i) => {
+        const plus = i < r.keys.length - 1 ? '<span class="cheat-plus">+</span>' : '';
+        return `<span class="cheat-kbd ${k.cls}">${k.label}</span>${plus}`;
+      }).join('');
+      html += `<div class="cheat-row">
+        <span class="cheat-action">${r.action}</span>
+        <span class="cheat-keys">${keysHtml}</span>
+      </div>`;
+      if (r.note) {
+        html += `<div style="font-size:10px;color:#536390;padding:0 0 4px;font-style:italic">${r.note}</div>`;
+      }
+    });
+    html += `</div>`;
+  });
+
+  panel.innerHTML = html;
+  // Re-focus filter
+  const f = document.getElementById('cheatFilter');
+  if (f && q) { f.focus(); f.setSelectionRange(q.length, q.length); }
+}
+
+function toggleCheatSheet() {
+  const panel = document.getElementById('cheatPanel');
+  const isOpen = panel.classList.toggle('open');
+  if (isOpen) renderCheatSheet('');
+}
+
+function renderRawTable() {
+  const table = document.getElementById('rawTable');
+  const layer = layers[currentLayer];
+  let html = `<tr>
+    <th>#</th><th>Side</th><th>Row</th><th>Col</th><th>Tap</th><th>Hold</th><th>Type</th>
+  </tr>`;
+  layer.keys.forEach((k, i) => {
+    const side = (i < 36) ? ((i % 12) < 6 ? 'L' : 'R') : (i < 39 ? 'L' : 'R');
+    let row, col;
+    if (i < 36) {
+      row = Math.floor(i / 12);
+      col = i % 12;
+      if (col >= 6) col = col - 6; // right half col
+    } else {
+      row = 'T';
+      col = i < 39 ? i - 36 : i - 39;
+    }
+    const tap = k.t ? k.t.replace(/\n/g, ' ') : (k.type === 'held' ? '(held)' : '');
+    const hold = k.h || '';
+    const type = k.type || '';
+    html += `<tr>
+      <td class="raw-pos">${i}</td>
+      <td class="raw-side">${side}</td>
+      <td class="raw-side">${row}</td>
+      <td class="raw-side">${col}</td>
+      <td class="raw-tap">${tap || '&mdash;'}</td>
+      <td class="raw-hold">${hold}</td>
+      <td class="raw-type">${type}</td>
+    </tr>`;
+  });
+  table.innerHTML = html;
+}
+
+function toggleRawPanel() {
+  const panel = document.getElementById('rawPanel');
+  panel.classList.toggle('open');
+  if (panel.classList.contains('open')) renderRawTable();
+}
+
+renderLayerList();
+renderKeyboard();
+</script>
+</body>
+</html>
