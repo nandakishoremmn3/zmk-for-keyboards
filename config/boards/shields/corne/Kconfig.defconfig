@@ -42,25 +42,3 @@ endif # LVGL
 
 endif
 
-if SHIELD_CORNE_RIGHT
-
-config CORNE_CUSTOM_DISPLAY
-	bool "Custom Corne display with logo and glitch effect"
-	default y if ZMK_DISPLAY && !SHIELD_NICE_VIEW
-	depends on ZMK_DISPLAY
-
-if CORNE_CUSTOM_DISPLAY
-
-choice ZMK_DISPLAY_STATUS_SCREEN
-	default ZMK_DISPLAY_STATUS_SCREEN_CUSTOM
-endchoice
-
-config LV_USE_LABEL
-	default y
-
-config LV_FONT_MONTSERRAT_26
-	default y
-
-endif # CORNE_CUSTOM_DISPLAY
-
-endif # SHIELD_CORNE_RIGHT
