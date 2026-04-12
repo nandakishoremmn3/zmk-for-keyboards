@@ -166,8 +166,8 @@ static void apply_glitch(uint8_t *buf) {
 /* LVGL image buffers */
 static uint8_t logo_pixel_buf[512];
 static const uint8_t palette[] = {
-    0x00, 0x00, 0x00, 0xFF, /* index 0: black */
-    0xFF, 0xFF, 0xFF, 0xFF, /* index 1: white */
+    0xFF, 0xFF, 0xFF, 0xFF, /* index 0: white (background) */
+    0x00, 0x00, 0x00, 0xFF, /* index 1: black (foreground) */
 };
 static uint8_t logo_combined[sizeof(palette) + sizeof(logo_pixel_buf)];
 
@@ -210,7 +210,7 @@ lv_obj_t *zmk_display_status_screen(void) {
     lv_obj_set_size(screen, 128, 32);
     lv_obj_set_style_pad_all(screen, 0, 0);
     lv_obj_set_style_border_width(screen, 0, 0);
-    lv_obj_set_style_bg_color(screen, lv_color_black(), 0);
+    lv_obj_set_style_bg_color(screen, lv_color_white(), 0);
 
     logo_img = lv_image_create(screen);
     lv_obj_align(logo_img, LV_ALIGN_CENTER, 0, 0);
