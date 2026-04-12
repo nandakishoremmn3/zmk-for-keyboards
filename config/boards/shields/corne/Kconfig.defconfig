@@ -46,17 +46,14 @@ if SHIELD_CORNE_RIGHT
 
 config CORNE_CUSTOM_DISPLAY
 	bool "Custom Corne display with logo and glitch effect"
-	default y if ZMK_DISPLAY && !NICE_VIEW_WIDGET_STATUS
-	depends on ZMK_DISPLAY && !NICE_VIEW_WIDGET_STATUS
+	default y if ZMK_DISPLAY && !SHIELD_NICE_VIEW
+	depends on ZMK_DISPLAY
 
 if CORNE_CUSTOM_DISPLAY
 
 choice ZMK_DISPLAY_STATUS_SCREEN
 	default ZMK_DISPLAY_STATUS_SCREEN_CUSTOM
 endchoice
-
-config NICE_VIEW_WIDGET_STATUS
-	default n
 
 config LV_USE_CANVAS
 	default y
