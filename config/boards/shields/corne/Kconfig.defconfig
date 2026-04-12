@@ -55,6 +55,9 @@ choice ZMK_DISPLAY_STATUS_SCREEN
 	default ZMK_DISPLAY_STATUS_SCREEN_CUSTOM
 endchoice
 
+config LV_USE_LABEL
+	default y
+
 config LV_FONT_MONTSERRAT_26
 	default y
 
