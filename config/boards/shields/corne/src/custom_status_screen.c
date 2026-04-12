@@ -2,6 +2,7 @@
  * Minimal custom display test for Corne right side
  */
 
+#include <stdbool.h>
 #include <zmk/display.h>
 #include <lvgl.h>
 
