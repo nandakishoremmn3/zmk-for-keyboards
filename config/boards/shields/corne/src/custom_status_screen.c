@@ -208,7 +208,7 @@ lv_obj_t *zmk_display_status_screen(void) {
     lv_obj_set_style_border_width(screen, 0, 0);
 
     canvas = lv_canvas_create(screen);
-    lv_canvas_set_buffer(canvas, canvas_buf, 128, 32, LV_COLOR_FORMAT_L1);
+    lv_canvas_set_buffer(canvas, canvas_buf, 128, 32, LV_COLOR_FORMAT_I1);
     lv_canvas_fill_bg(canvas, lv_color_white(), LV_OPA_COVER);
     lv_obj_align(canvas, LV_ALIGN_CENTER, 0, 0);
 
