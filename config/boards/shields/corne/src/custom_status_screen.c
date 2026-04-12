@@ -163,61 +163,15 @@ static void apply_glitch(uint8_t *buf) {
     }
 }
 
-/* LVGL canvas buffer — direct pixel drawing, no palette needed */
-static uint8_t canvas_buf[LV_CANVAS_BUF_SIZE(128, 32, 1, LV_DRAW_BUF_ALIGN)];
-static uint8_t logo_pixel_buf[512]; /* 16 bytes/row x 32 rows */
-
-static lv_obj_t *canvas;
-static int64_t last_glitch_time;
-
-static void render_to_canvas(void) {
-    convert_logo_to_lvgl(raw_logo, logo_pixel_buf);
-    apply_glitch(logo_pixel_buf);
-
-    /* Draw pixel-by-pixel onto canvas */
-    for (int y = 0; y < 32; y++) {
-        for (int x = 0; x < 128; x++) {
-            int byte_idx = y * 16 + (x / 8);
-            int bit_idx = 7 - (x % 8);
-            bool pixel_set = (logo_pixel_buf[byte_idx] >> bit_idx) & 1;
-            lv_canvas_set_px(canvas, x, y,
-                pixel_set ? lv_color_white() : lv_color_black(),
-                LV_OPA_COVER);
-        }
-    }
-    lv_obj_invalidate(canvas);
-}
-
-static void glitch_timer_cb(lv_timer_t *timer) {
-    int64_t now = k_uptime_get();
-    int64_t elapsed = now - last_glitch_time;
-
-    if (glitch_frames_left == 0 && elapsed > (int64_t)glitch_next_ms) {
-        last_glitch_time = now;
-        glitch_frames_left = 2 + (glitch_rand() % 5);
-        glitch_next_ms = 2000 + (glitch_rand() % 6000);
-    }
-
-    render_to_canvas();
-}
+static lv_obj_t *logo_label;
 
 lv_obj_t *zmk_display_status_screen(void) {
     lv_obj_t *screen = lv_obj_create(NULL);
-    lv_obj_set_size(screen, 128, 32);
-    lv_obj_set_style_pad_all(screen, 0, 0);
-    lv_obj_set_style_border_width(screen, 0, 0);
 
-    canvas = lv_canvas_create(screen);
-    lv_canvas_set_buffer(canvas, canvas_buf, 128, 32, LV_COLOR_FORMAT_I1);
-    lv_canvas_fill_bg(canvas, lv_color_black(), LV_OPA_COVER);
-    lv_obj_align(canvas, LV_ALIGN_CENTER, 0, 0);
-
-    render_to_canvas();
-
-    last_glitch_time = k_uptime_get();
-
-    /* Glitch animation timer — fires every 150ms */
-    lv_timer_create(glitch_timer_cb, 150, NULL);
+    logo_label = lv_label_create(screen);
+    lv_label_set_text(logo_label, "PARIX");
+    lv_obj_set_style_text_font(logo_label, &lv_font_montserrat_26, 0);
+    lv_obj_align(logo_label, LV_ALIGN_CENTER, 0, 0);
 
     return screen;
 }
