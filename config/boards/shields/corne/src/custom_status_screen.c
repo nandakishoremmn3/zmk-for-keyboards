@@ -163,26 +163,30 @@ static void apply_glitch(uint8_t *buf) {
     }
 }
 
-/* LVGL image buffers */
-static uint8_t logo_pixel_buf[512];
-static const uint8_t palette[] = {
-    0xFF, 0xFF, 0xFF, 0xFF, /* index 0: white (background) */
-    0x00, 0x00, 0x00, 0xFF, /* index 1: black (foreground) */
-};
-static uint8_t logo_combined[sizeof(palette) + sizeof(logo_pixel_buf)];
+/* LVGL canvas buffer — direct pixel drawing, no palette needed */
+static uint8_t canvas_buf[LV_CANVAS_BUF_SIZE(128, 32, 1, LV_DRAW_BUF_ALIGN)];
+static uint8_t logo_pixel_buf[512]; /* 16 bytes/row x 32 rows */
 
-static lv_image_dsc_t logo_dsc = {
-    .header = {
-        .cf = LV_COLOR_FORMAT_I1,
-        .w = 128,
-        .h = 32,
-    },
-    .data_size = sizeof(logo_combined),
-    .data = logo_combined,
-};
-
-static lv_obj_t *logo_img;
+static lv_obj_t *canvas;
 static int64_t last_glitch_time;
+
+static void render_to_canvas(void) {
+    convert_logo_to_lvgl(raw_logo, logo_pixel_buf);
+    apply_glitch(logo_pixel_buf);
+
+    /* Draw pixel-by-pixel onto canvas */
+    for (int y = 0; y < 32; y++) {
+        for (int x = 0; x < 128; x++) {
+            int byte_idx = y * 16 + (x / 8);
+            int bit_idx = 7 - (x % 8);
+            bool pixel_set = (logo_pixel_buf[byte_idx] >> bit_idx) & 1;
+            lv_canvas_set_px(canvas, x, y,
+                pixel_set ? lv_color_black() : lv_color_white(),
+                LV_OPA_COVER);
+        }
+    }
+    lv_obj_invalidate(canvas);
+}
 
 static void glitch_timer_cb(lv_timer_t *timer) {
     int64_t now = k_uptime_get();
@@ -194,15 +198,7 @@ static void glitch_timer_cb(lv_timer_t *timer) {
         glitch_next_ms = 2000 + (glitch_rand() % 6000);
     }
 
-    convert_logo_to_lvgl(raw_logo, logo_pixel_buf);
-    apply_glitch(logo_pixel_buf);
-
-    memcpy(logo_combined, palette, sizeof(palette));
-    memcpy(logo_combined + sizeof(palette), logo_pixel_buf, sizeof(logo_pixel_buf));
-
-    logo_dsc.data = logo_combined;
-    lv_image_set_src(logo_img, &logo_dsc);
-    lv_obj_invalidate(logo_img);
+    render_to_canvas();
 }
 
 lv_obj_t *zmk_display_status_screen(void) {
@@ -210,17 +206,13 @@ lv_obj_t *zmk_display_status_screen(void) {
     lv_obj_set_size(screen, 128, 32);
     lv_obj_set_style_pad_all(screen, 0, 0);
     lv_obj_set_style_border_width(screen, 0, 0);
-    lv_obj_set_style_bg_color(screen, lv_color_white(), 0);
 
-    logo_img = lv_image_create(screen);
-    lv_obj_align(logo_img, LV_ALIGN_CENTER, 0, 0);
+    canvas = lv_canvas_create(screen);
+    lv_canvas_set_buffer(canvas, canvas_buf, 128, 32, LV_COLOR_FORMAT_L1);
+    lv_canvas_fill_bg(canvas, lv_color_white(), LV_OPA_COVER);
+    lv_obj_align(canvas, LV_ALIGN_CENTER, 0, 0);
 
-    /* Initial render */
-    convert_logo_to_lvgl(raw_logo, logo_pixel_buf);
-    memcpy(logo_combined, palette, sizeof(palette));
-    memcpy(logo_combined + sizeof(palette), logo_pixel_buf, sizeof(logo_pixel_buf));
-    logo_dsc.data = logo_combined;
-    lv_image_set_src(logo_img, &logo_dsc);
+    render_to_canvas();
 
     last_glitch_time = k_uptime_get();
 
