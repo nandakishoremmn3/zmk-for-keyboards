@@ -181,7 +181,7 @@ static void render_to_canvas(void) {
             int bit_idx = 7 - (x % 8);
             bool pixel_set = (logo_pixel_buf[byte_idx] >> bit_idx) & 1;
             lv_canvas_set_px(canvas, x, y,
-                pixel_set ? lv_color_black() : lv_color_white(),
+                pixel_set ? lv_color_white() : lv_color_black(),
                 LV_OPA_COVER);
         }
     }
@@ -209,7 +209,7 @@ lv_obj_t *zmk_display_status_screen(void) {
 
     canvas = lv_canvas_create(screen);
     lv_canvas_set_buffer(canvas, canvas_buf, 128, 32, LV_COLOR_FORMAT_I1);
-    lv_canvas_fill_bg(canvas, lv_color_white(), LV_OPA_COVER);
+    lv_canvas_fill_bg(canvas, lv_color_black(), LV_OPA_COVER);
     lv_obj_align(canvas, LV_ALIGN_CENTER, 0, 0);
 
     render_to_canvas();
