@@ -31,7 +31,6 @@ RC(2,0) RC(2,1) RC(2,2) RC(2,3) RC(2,4) RC(2,5)  RC(2,6)  RC(2,7) RC(2,8) RC(2,9
 
 	 kscan0: kscan {
         compatible = "zmk,kscan-gpio-matrix";
-        label = "KSCAN";
 		wakeup-source;
         diode-direction = "col2row";
 		row-gpios
@@ -107,8 +106,6 @@ RC(2,0) RC(2,1) RC(2,2) RC(2,3) RC(2,4) RC(2,5)  RC(2,6)  RC(2,7) RC(2,8) RC(2,9
 
 	led_strip: ws2812@0 {
 		compatible = "worldsemi,ws2812-spi";
-		label = "WS2812";
-
 		/* SPI */
 		reg = <0>; /* ignored, but necessary for SPI bindings */
 		spi-max-frequency = <4000000>;
