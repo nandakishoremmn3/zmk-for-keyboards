@@ -150,12 +150,17 @@ static lv_image_dsc_t logo_dsc = {
 static lv_obj_t *logo_img;
 static int64_t last_glitch_time;
 
-static void update_logo(void) {
+static bool logo_dirty = true;
+
+static void update_logo(bool with_glitch) {
     uint8_t buf[512];
     memcpy(buf, raw_logo, 512);
-    apply_glitch(buf);
+    if (with_glitch) {
+        apply_glitch(buf);
+    }
     convert_to_lvgl_i1(buf, img_buf);
     logo_dsc.data = img_buf;
+    logo_dsc.header.cf = LV_COLOR_FORMAT_I1; /* force LVGL to re-read */
     lv_image_set_src(logo_img, &logo_dsc);
     lv_obj_invalidate(logo_img);
 }
@@ -163,13 +168,23 @@ static void update_logo(void) {
 static void glitch_timer_cb(lv_timer_t *timer) {
     int64_t now = k_uptime_get();
 
-    if (glitch_frames_left == 0 && (now - last_glitch_time) > (int64_t)glitch_next_ms) {
-        last_glitch_time = now;
-        glitch_frames_left = 2 + (glitch_rand() % 5);
-        glitch_next_ms = 2000 + (glitch_rand() % 6000);
+    if (glitch_frames_left == 0) {
+        /* No active glitch — check if it's time for a new burst */
+        if ((now - last_glitch_time) > (int64_t)glitch_next_ms) {
+            last_glitch_time = now;
+            glitch_frames_left = 2 + (glitch_rand() % 5);
+            glitch_next_ms = 2000 + (glitch_rand() % 6000);
+        } else if (logo_dirty) {
+            /* Restore clean logo after glitch ends */
+            update_logo(false);
+            logo_dirty = false;
+        }
+        return;
     }
 
-    update_logo();
+    /* Active glitch — render glitched frame */
+    update_logo(true);
+    logo_dirty = true;
 }
 
 lv_obj_t *zmk_display_status_screen(void) {
@@ -178,10 +193,9 @@ lv_obj_t *zmk_display_status_screen(void) {
     logo_img = lv_image_create(screen);
     lv_obj_align(logo_img, LV_ALIGN_CENTER, 0, 0);
 
-    /* Initial render */
-    convert_to_lvgl_i1((uint8_t *)raw_logo, img_buf);
-    logo_dsc.data = img_buf;
-    lv_image_set_src(logo_img, &logo_dsc);
+    /* Initial render — clean logo */
+    update_logo(false);
+    logo_dirty = false;
 
     last_glitch_time = k_uptime_get();
     lv_timer_create(glitch_timer_cb, 150, NULL);
