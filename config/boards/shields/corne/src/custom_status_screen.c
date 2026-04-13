@@ -1,6 +1,6 @@
 /*
  * Custom Corne peripheral display
- * PARIX logo with glitch effects + battery + connection status
+ * P keycap logo (from PARIX) + glitch + battery + connection
  */
 
 #include <stdbool.h>
@@ -17,47 +17,32 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #include <zmk/events/split_peripheral_status_changed.h>
 #include <lvgl.h>
 
-/* ── PARIX logo bitmap (QMK page format: 4 pages x 128 cols) ── */
-
-static const uint8_t raw_logo[512] = {
-    0,  0,  0,  0,  0,  0,192,224,112, 48, 48, 48, 48, 48, 48, 48,
-   48, 48, 48, 48, 48, 48, 48, 48,112,224,192,  0,  0,  0,192,224,
-  112, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48,
-  112,224,192,  0,  0,  0,192,224,112, 48, 48, 48, 48, 48, 48, 48,
-   48, 48, 48, 48, 48, 48, 48, 48,112,224,192,  0,  0,  0,192,224,
-  112, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48,
-  112,224,192,  0,  0,  0,192,224,112, 48, 48, 48, 48, 48, 48, 48,
-   48, 48, 48, 48, 48, 48, 48, 48,112,224,192,  0,  0,  0,  0,  0,
-    0,  0,  0,  0,  0,  0,255,255,  0,  0,  0,  0,  0,254, 66, 66,
-   66, 66,102, 60,  0,  0,  0,  0,  0,255,255,  0,  0,  0,255,255,
-    0,  0,  0,  0,  0,192,188,130,188,192,  0,  0,  0,  0,  0,  0,
-    0,255,255,  0,  0,  0,255,255,  0,  0,  0,  0,254, 66, 66, 66,
-   66,166, 60,  0,  0,  0,  0,  0,  0,255,255,  0,  0,  0,255,255,
-    0,  0,  0,  0,  0,  0,  2,  2,254,  2,  2,  0,  0,  0,  0,  0,
-    0,255,255,  0,  0,  0,255,255,  0,  0,  0,  0,  2, 12,216, 96,
-  216,  4,  2,  0,  0,  0,  0,  0,  0,255,255,  0,  0,  0,  0,  0,
-    0,  0,  0,  0,  0,  0,255,255,128,  0,  0,  0,  0,  7,  0,  0,
-    0,  0,  0,  0,  0,  0,  0,  0,128,255,255,  0,  0,  0,255,255,
-  128,  0,  0,  0,  6,  1,  0,  0,  0,  1,  6,  0,  0,  0,  0,  0,
-  128,255,255,  0,  0,  0,255,255,128,  0,  0,  0,  7,  0,  0,  0,
-    0,  0,  3,  4,  0,  0,  0,  0,128,255,255,  0,  0,  0,255,255,
-  128,  0,  0,  0,  0,  0,  4,  4,  7,  4,  4,  0,  0,  0,  0,  0,
-  128,255,255,  0,  0,  0,255,255,128,  0,  0,  0,  4,  3,  0,  0,
-    0,  3,  4,  0,  0,  0,  0,  0,128,255,255,  0,  0,  0,  0,  0,
-    0,  0,  0,  0,  0,  0,  7, 15, 31, 31, 31, 31, 31, 31, 31, 31,
-   31, 31, 31, 31, 31, 31, 31, 31, 31, 15,  7,  0,  0,  0,  7, 15,
-   31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31,
-   31, 15,  7,  0,  0,  0,  7, 15, 31, 31, 31, 31, 31, 31, 31, 31,
-   31, 31, 31, 31, 31, 31, 31, 31, 31, 15,  7,  0,  0,  0,  7, 15,
-   31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31,
-   31, 15,  7,  0,  0,  0,  7, 15, 31, 31, 31, 31, 31, 31, 31, 31,
-   31, 31, 31, 31, 31, 31, 31, 31, 31, 15,  7,  0,  0,  0,  0,  0,
+/* ── P keycap extracted from PARIX logo (cols 4-27, 24px wide x 32px tall) ──
+ * QMK page format: 4 pages, 24 columns each
+ */
+static const uint8_t raw_p_keycap[4 * 24] = {
+    /* Page 0 (rows 0-7) — top border */
+      0,  0,192,224,112, 48, 48, 48, 48, 48, 48, 48,
+     48, 48, 48, 48, 48, 48, 48, 48,112,224,192,  0,
+    /* Page 1 (rows 8-15) — upper P letter */
+      0,  0,255,255,  0,  0,  0,  0,  0,254, 66, 66,
+     66, 66,102, 60,  0,  0,  0,  0,  0,255,255,  0,
+    /* Page 2 (rows 16-23) — lower P letter */
+      0,  0,255,255,128,  0,  0,  0,  0,  7,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,128,255,255,  0,
+    /* Page 3 (rows 24-31) — bottom border */
+      0,  0,  7, 15, 31, 31, 31, 31, 31, 31, 31, 31,
+     31, 31, 31, 31, 31, 31, 31, 31, 31, 15,  7,  0,
 };
+
+#define P_WIDTH  24
+#define P_HEIGHT 32
+#define P_STRIDE 3  /* ceil(24/8) = 3 bytes per row */
 
 /* ── Glitch engine ── */
 
 static uint16_t glitch_seed = 42;
-static uint32_t glitch_next_ms = 3000;
+static uint32_t glitch_next_ms;
 static uint8_t glitch_frames_left = 0;
 
 static uint16_t glitch_rand(void) {
@@ -75,84 +60,86 @@ static void apply_glitch(uint8_t *buf) {
     uint8_t fx = glitch_rand() % 4;
 
     if (fx == 0) {
+        /* Horizontal shift in a page */
         uint8_t page = glitch_rand() % 4;
-        uint8_t start = glitch_rand() % 96;
-        int8_t shift = (glitch_rand() % 13) - 6;
+        int8_t shift = (glitch_rand() % 7) - 3;
         if (shift > 0) {
-            for (int c = 127; c >= start + shift; c--)
-                buf[page * 128 + c] = buf[page * 128 + c - shift];
+            for (int c = P_WIDTH - 1; c >= shift; c--)
+                buf[page * P_WIDTH + c] = buf[page * P_WIDTH + c - shift];
         } else if (shift < 0) {
-            for (int c = start; c < start + 32 && c < 128; c++)
-                if (c - shift < 128)
-                    buf[page * 128 + c] = buf[page * 128 + c - shift];
+            for (int c = 0; c < P_WIDTH + shift; c++)
+                buf[page * P_WIDTH + c] = buf[page * P_WIDTH + c - shift];
         }
     } else if (fx == 1) {
+        /* Noise block */
         uint8_t page = glitch_rand() % 4;
-        uint8_t col = glitch_rand() % 100;
-        uint8_t w = 8 + (glitch_rand() % 24);
-        for (uint8_t c = col; c < col + w && c < 128; c++)
-            buf[page * 128 + c] = (uint8_t)glitch_rand();
+        uint8_t col = glitch_rand() % (P_WIDTH - 4);
+        uint8_t w = 3 + (glitch_rand() % 6);
+        for (uint8_t c = col; c < col + w && c < P_WIDTH; c++)
+            buf[page * P_WIDTH + c] = (uint8_t)glitch_rand();
     } else if (fx == 2) {
+        /* Invert strip */
         uint8_t page = glitch_rand() % 4;
-        uint8_t col = glitch_rand() % 80;
-        uint8_t w = 20 + (glitch_rand() % 40);
-        for (uint8_t c = col; c < col + w && c < 128; c++)
-            buf[page * 128 + c] = ~buf[page * 128 + c];
+        uint8_t col = glitch_rand() % (P_WIDTH - 4);
+        uint8_t w = 4 + (glitch_rand() % 10);
+        for (uint8_t c = col; c < col + w && c < P_WIDTH; c++)
+            buf[page * P_WIDTH + c] = ~buf[page * P_WIDTH + c];
     } else {
+        /* Screen tear */
         uint8_t src = glitch_rand() % 4;
         uint8_t dst = (src + 1 + (glitch_rand() % 3)) % 4;
-        uint8_t col = glitch_rand() % 64;
-        uint8_t w = 32 + (glitch_rand() % 48);
-        for (uint8_t c = col; c < col + w && c < 128; c++)
-            buf[dst * 128 + c] = buf[src * 128 + c];
+        uint8_t col = glitch_rand() % (P_WIDTH / 2);
+        uint8_t w = P_WIDTH / 3 + (glitch_rand() % (P_WIDTH / 3));
+        for (uint8_t c = col; c < col + w && c < P_WIDTH; c++)
+            buf[dst * P_WIDTH + c] = buf[src * P_WIDTH + c];
     }
 }
 
-/* ── Logo image rendering ── */
+/* ── Convert to LVGL I1 image ── */
 
-static void convert_to_lvgl_i1(const uint8_t *qmk_buf, uint8_t *out) {
-    /* I1 palette: index 0 = white (bg), index 1 = black (fg) */
-    out[0] = 0xFF; out[1] = 0xFF; out[2] = 0xFF; out[3] = 0xFF;
-    out[4] = 0x00; out[5] = 0x00; out[6] = 0x00; out[7] = 0xFF;
+static void convert_p_to_lvgl_i1(const uint8_t *qmk_buf, uint8_t *out) {
+    /* I1 palette */
+    out[0] = 0xFF; out[1] = 0xFF; out[2] = 0xFF; out[3] = 0xFF; /* idx 0: white */
+    out[4] = 0x00; out[5] = 0x00; out[6] = 0x00; out[7] = 0xFF; /* idx 1: black */
 
     uint8_t *pixels = out + 8;
-    memset(pixels, 0, 16 * 32);
+    memset(pixels, 0, P_STRIDE * P_HEIGHT);
 
     for (int page = 0; page < 4; page++) {
-        for (int col = 0; col < 128; col++) {
-            uint8_t val = qmk_buf[page * 128 + col];
+        for (int col = 0; col < P_WIDTH; col++) {
+            uint8_t val = qmk_buf[page * P_WIDTH + col];
             for (int bit = 0; bit < 8; bit++) {
                 if (val & (1 << bit)) {
                     int y = page * 8 + bit;
-                    pixels[y * 16 + (col / 8)] |= (0x80 >> (col % 8));
+                    pixels[y * P_STRIDE + (col / 8)] |= (0x80 >> (col % 8));
                 }
             }
         }
     }
 }
 
-static uint8_t img_buf[8 + 512]; /* palette + 32 rows */
-static lv_image_dsc_t logo_dsc = {
-    .header = { .cf = LV_COLOR_FORMAT_I1, .w = 128, .h = 32 },
+static uint8_t img_buf[8 + P_STRIDE * P_HEIGHT];
+static lv_image_dsc_t p_dsc = {
+    .header = { .cf = LV_COLOR_FORMAT_I1, .w = P_WIDTH, .h = P_HEIGHT },
     .data_size = sizeof(img_buf),
     .data = img_buf,
 };
 
-static lv_obj_t *logo_img;
+static lv_obj_t *p_img;
 static int64_t last_glitch_time;
 static bool logo_dirty = true;
 
-static void update_logo(bool with_glitch) {
-    uint8_t buf[512];
-    memcpy(buf, raw_logo, 512);
+static void update_p(bool with_glitch) {
+    uint8_t buf[4 * P_WIDTH];
+    memcpy(buf, raw_p_keycap, sizeof(buf));
     if (with_glitch) {
         apply_glitch(buf);
     }
-    convert_to_lvgl_i1(buf, img_buf);
-    logo_dsc.data = img_buf;
-    logo_dsc.header.cf = LV_COLOR_FORMAT_I1;
-    lv_image_set_src(logo_img, &logo_dsc);
-    lv_obj_invalidate(logo_img);
+    convert_p_to_lvgl_i1(buf, img_buf);
+    p_dsc.data = img_buf;
+    p_dsc.header.cf = LV_COLOR_FORMAT_I1;
+    lv_image_set_src(p_img, &p_dsc);
+    lv_obj_invalidate(p_img);
 }
 
 static void glitch_timer_cb(lv_timer_t *timer) {
@@ -161,16 +148,15 @@ static void glitch_timer_cb(lv_timer_t *timer) {
     if (glitch_frames_left == 0) {
         if ((now - last_glitch_time) > (int64_t)glitch_next_ms) {
             last_glitch_time = now;
-            glitch_frames_left = 2 + (glitch_rand() % 5);
+            glitch_frames_left = 2 + (glitch_rand() % 4);
             glitch_next_ms = 2000 + (glitch_rand() % 6000);
         } else if (logo_dirty) {
-            update_logo(false);
+            update_p(false);
             logo_dirty = false;
         }
         return;
     }
-
-    update_logo(true);
+    update_p(true);
     logo_dirty = true;
 }
 
@@ -178,23 +164,11 @@ static void glitch_timer_cb(lv_timer_t *timer) {
 
 static lv_obj_t *battery_label;
 
-struct battery_state {
-    uint8_t level;
-};
+struct battery_state { uint8_t level; };
 
 static void battery_update_cb(struct battery_state state) {
-    char text[9];
-    if (state.level > 95) {
-        snprintf(text, sizeof(text), LV_SYMBOL_BATTERY_FULL);
-    } else if (state.level > 65) {
-        snprintf(text, sizeof(text), LV_SYMBOL_BATTERY_3);
-    } else if (state.level > 35) {
-        snprintf(text, sizeof(text), LV_SYMBOL_BATTERY_2);
-    } else if (state.level > 5) {
-        snprintf(text, sizeof(text), LV_SYMBOL_BATTERY_1);
-    } else {
-        snprintf(text, sizeof(text), LV_SYMBOL_BATTERY_EMPTY);
-    }
+    char text[5];
+    snprintf(text, sizeof(text), "%u%%", state.level);
     lv_label_set_text(battery_label, text);
 }
 
@@ -213,14 +187,11 @@ ZMK_SUBSCRIPTION(corne_battery, zmk_battery_state_changed);
 
 static lv_obj_t *conn_label;
 
-struct conn_state {
-    bool connected;
-};
+struct conn_state { bool connected; };
 
 static void conn_update_cb(struct conn_state state) {
     lv_label_set_text(conn_label,
-        state.connected ? LV_SYMBOL_WIFI " " LV_SYMBOL_OK
-                        : LV_SYMBOL_WIFI " " LV_SYMBOL_CLOSE);
+        state.connected ? LV_SYMBOL_WIFI : LV_SYMBOL_WIFI " " LV_SYMBOL_CLOSE);
 }
 
 static struct conn_state conn_get_state(const zmk_event_t *eh) {
@@ -233,43 +204,36 @@ ZMK_DISPLAY_WIDGET_LISTENER(corne_conn, struct conn_state,
                             conn_update_cb, conn_get_state)
 ZMK_SUBSCRIPTION(corne_conn, zmk_split_peripheral_status_changed);
 
-/* ── Screen layout ──
+/* ── Screen layout (128x32) ──
  *
- * 128x32 display:
- * +------------------------------------------+
- * |          PARIX logo (128x22)             |
- * +--------------------+---------------------+
- * | WiFi status        |        Battery icon |
- * +--------------------+---------------------+
+ * +------+---------------------+
+ * |      |  WiFi status        |
+ * | [P]  |                     |
+ * |      |  Battery %          |
+ * +------+---------------------+
+ *  ~30px        ~98px
  */
 
 lv_obj_t *zmk_display_status_screen(void) {
     lv_obj_t *screen = lv_obj_create(NULL);
 
-    /* Logo — top 22 pixels */
-    logo_img = lv_image_create(screen);
-    lv_obj_align(logo_img, LV_ALIGN_TOP_MID, 0, 0);
-    update_logo(false);
+    /* P keycap — left side */
+    p_img = lv_image_create(screen);
+    lv_obj_align(p_img, LV_ALIGN_LEFT_MID, 2, 0);
+    update_p(false);
     logo_dirty = false;
     last_glitch_time = k_uptime_get();
+    glitch_next_ms = 3000;
     lv_timer_create(glitch_timer_cb, 150, NULL);
 
-    /* Status bar — bottom, overlays logo */
-    lv_obj_t *status_bar = lv_obj_create(screen);
-    lv_obj_set_size(status_bar, 128, 12);
-    lv_obj_align(status_bar, LV_ALIGN_BOTTOM_MID, 0, 0);
-    lv_obj_set_style_pad_all(status_bar, 0, 0);
-    lv_obj_set_style_border_width(status_bar, 0, 0);
-    lv_obj_set_style_radius(status_bar, 0, 0);
-
-    /* Connection status — left */
-    conn_label = lv_label_create(status_bar);
-    lv_obj_align(conn_label, LV_ALIGN_LEFT_MID, 2, 0);
+    /* Connection — top right */
+    conn_label = lv_label_create(screen);
+    lv_obj_align(conn_label, LV_ALIGN_TOP_RIGHT, -2, 2);
     corne_conn_init();
 
-    /* Battery — right */
-    battery_label = lv_label_create(status_bar);
-    lv_obj_align(battery_label, LV_ALIGN_RIGHT_MID, -2, 0);
+    /* Battery — bottom right */
+    battery_label = lv_label_create(screen);
+    lv_obj_align(battery_label, LV_ALIGN_BOTTOM_RIGHT, -2, -2);
     corne_battery_init();
 
     return screen;
