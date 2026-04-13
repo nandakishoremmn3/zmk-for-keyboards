@@ -1,10 +1,5 @@
 if(CONFIG_CORNE_CUSTOM_DISPLAY)
   zephyr_library_named(corne_custom_display)
   zephyr_library_include_directories(${CMAKE_SOURCE_DIR}/include)
-
-  if(NOT CONFIG_ZMK_SPLIT OR CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
-    zephyr_library_sources(src/custom_status_screen_central.c)
-  else()
-    zephyr_library_sources(src/custom_status_screen.c)
-  endif()
+  zephyr_library_sources(src/custom_status_screen.c)
 endif()
