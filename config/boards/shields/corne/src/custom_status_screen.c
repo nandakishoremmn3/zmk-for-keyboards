@@ -110,23 +110,20 @@ static void apply_glitch(uint8_t *buf) {
 
 /* ── Logo image rendering ── */
 
-#define LOGO_HEIGHT 22
-
 static void convert_to_lvgl_i1(const uint8_t *qmk_buf, uint8_t *out) {
     /* I1 palette: index 0 = white (bg), index 1 = black (fg) */
     out[0] = 0xFF; out[1] = 0xFF; out[2] = 0xFF; out[3] = 0xFF;
     out[4] = 0x00; out[5] = 0x00; out[6] = 0x00; out[7] = 0xFF;
 
     uint8_t *pixels = out + 8;
-    memset(pixels, 0, 16 * LOGO_HEIGHT);
+    memset(pixels, 0, 16 * 32);
 
     for (int page = 0; page < 4; page++) {
         for (int col = 0; col < 128; col++) {
             uint8_t val = qmk_buf[page * 128 + col];
             for (int bit = 0; bit < 8; bit++) {
-                int y = page * 8 + bit;
-                if (y >= LOGO_HEIGHT) continue;
                 if (val & (1 << bit)) {
+                    int y = page * 8 + bit;
                     pixels[y * 16 + (col / 8)] |= (0x80 >> (col % 8));
                 }
             }
@@ -134,9 +131,9 @@ static void convert_to_lvgl_i1(const uint8_t *qmk_buf, uint8_t *out) {
     }
 }
 
-static uint8_t img_buf[8 + 16 * LOGO_HEIGHT]; /* palette + pixel rows */
+static uint8_t img_buf[8 + 512]; /* palette + 32 rows */
 static lv_image_dsc_t logo_dsc = {
-    .header = { .cf = LV_COLOR_FORMAT_I1, .w = 128, .h = LOGO_HEIGHT },
+    .header = { .cf = LV_COLOR_FORMAT_I1, .w = 128, .h = 32 },
     .data_size = sizeof(img_buf),
     .data = img_buf,
 };
@@ -257,14 +254,22 @@ lv_obj_t *zmk_display_status_screen(void) {
     last_glitch_time = k_uptime_get();
     lv_timer_create(glitch_timer_cb, 150, NULL);
 
-    /* Connection status — bottom left */
-    conn_label = lv_label_create(screen);
-    lv_obj_align(conn_label, LV_ALIGN_BOTTOM_LEFT, 0, 0);
+    /* Status bar — bottom, overlays logo */
+    lv_obj_t *status_bar = lv_obj_create(screen);
+    lv_obj_set_size(status_bar, 128, 12);
+    lv_obj_align(status_bar, LV_ALIGN_BOTTOM_MID, 0, 0);
+    lv_obj_set_style_pad_all(status_bar, 0, 0);
+    lv_obj_set_style_border_width(status_bar, 0, 0);
+    lv_obj_set_style_radius(status_bar, 0, 0);
+
+    /* Connection status — left */
+    conn_label = lv_label_create(status_bar);
+    lv_obj_align(conn_label, LV_ALIGN_LEFT_MID, 2, 0);
     corne_conn_init();
 
-    /* Battery — bottom right */
-    battery_label = lv_label_create(screen);
-    lv_obj_align(battery_label, LV_ALIGN_BOTTOM_RIGHT, 0, 0);
+    /* Battery — right */
+    battery_label = lv_label_create(status_bar);
+    lv_obj_align(battery_label, LV_ALIGN_RIGHT_MID, -2, 0);
     corne_battery_init();
 
     return screen;
