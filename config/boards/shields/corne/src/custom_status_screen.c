@@ -250,8 +250,9 @@ lv_obj_t *zmk_display_status_screen(void) {
     battery_icon_label = lv_label_create(screen);
     lv_obj_align(battery_icon_label, LV_ALIGN_TOP_RIGHT, -2, 0);
 
-    /* Battery % — below icon */
+    /* Battery % — below icon, smaller font */
     battery_label = lv_label_create(screen);
+    lv_obj_set_style_text_font(battery_label, &lv_font_unscii_8, 0);
     lv_obj_align(battery_label, LV_ALIGN_BOTTOM_RIGHT, -2, 0);
     corne_battery_init();
 
