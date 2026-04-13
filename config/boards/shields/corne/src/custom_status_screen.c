@@ -166,9 +166,11 @@ static lv_obj_t *battery_label;
 
 struct battery_state { uint8_t level; };
 
+static lv_obj_t *battery_icon_label;
+
 static void battery_update_cb(struct battery_state state) {
-    char text[16];
     const char *icon;
+    char pct[5];
     if (state.level > 95) {
         icon = LV_SYMBOL_BATTERY_FULL;
     } else if (state.level > 65) {
@@ -180,8 +182,9 @@ static void battery_update_cb(struct battery_state state) {
     } else {
         icon = LV_SYMBOL_BATTERY_EMPTY;
     }
-    snprintf(text, sizeof(text), "%s %u%%", icon, state.level);
-    lv_label_set_text(battery_label, text);
+    lv_label_set_text(battery_icon_label, icon);
+    snprintf(pct, sizeof(pct), "%u%%", state.level);
+    lv_label_set_text(battery_label, pct);
 }
 
 static struct battery_state battery_get_state(const zmk_event_t *eh) {
@@ -243,9 +246,13 @@ lv_obj_t *zmk_display_status_screen(void) {
     lv_obj_align(conn_label, LV_ALIGN_TOP_LEFT, 2, 2);
     corne_conn_init();
 
-    /* Battery — bottom right */
+    /* Battery icon — top right */
+    battery_icon_label = lv_label_create(screen);
+    lv_obj_align(battery_icon_label, LV_ALIGN_TOP_RIGHT, -2, 0);
+
+    /* Battery % — below icon */
     battery_label = lv_label_create(screen);
-    lv_obj_align(battery_label, LV_ALIGN_BOTTOM_RIGHT, -2, -2);
+    lv_obj_align(battery_label, LV_ALIGN_BOTTOM_RIGHT, -2, 0);
     corne_battery_init();
 
     return screen;
