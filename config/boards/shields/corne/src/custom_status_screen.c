@@ -169,22 +169,21 @@ struct battery_state { uint8_t level; };
 static lv_obj_t *battery_icon_label;
 
 static void battery_update_cb(struct battery_state state) {
-    const char *icon;
     char pct[5];
-    if (state.level > 95) {
-        icon = LV_SYMBOL_BATTERY_FULL;
-    } else if (state.level > 65) {
-        icon = LV_SYMBOL_BATTERY_3;
-    } else if (state.level > 35) {
-        icon = LV_SYMBOL_BATTERY_2;
-    } else if (state.level > 5) {
-        icon = LV_SYMBOL_BATTERY_1;
-    } else {
-        icon = LV_SYMBOL_BATTERY_EMPTY;
-    }
-    lv_label_set_text(battery_icon_label, icon);
     snprintf(pct, sizeof(pct), "%u%%", state.level);
     lv_label_set_text(battery_label, pct);
+
+    if (state.level > 75) {
+        lv_label_set_text(battery_icon_label, "[||||]");
+    } else if (state.level > 50) {
+        lv_label_set_text(battery_icon_label, "[||| ]");
+    } else if (state.level > 25) {
+        lv_label_set_text(battery_icon_label, "[||  ]");
+    } else if (state.level > 5) {
+        lv_label_set_text(battery_icon_label, "[|   ]");
+    } else {
+        lv_label_set_text(battery_icon_label, "[    ]");
+    }
 }
 
 static struct battery_state battery_get_state(const zmk_event_t *eh) {
@@ -205,8 +204,7 @@ static lv_obj_t *conn_label;
 struct conn_state { bool connected; };
 
 static void conn_update_cb(struct conn_state state) {
-    lv_label_set_text(conn_label,
-        state.connected ? LV_SYMBOL_WIFI : LV_SYMBOL_WIFI " " LV_SYMBOL_CLOSE);
+    lv_label_set_text(conn_label, state.connected ? "BT:OK" : "BT:--");
 }
 
 static struct conn_state conn_get_state(const zmk_event_t *eh) {
@@ -243,12 +241,14 @@ lv_obj_t *zmk_display_status_screen(void) {
 
     /* Connection — top left */
     conn_label = lv_label_create(screen);
+    lv_obj_set_style_text_font(conn_label, &lv_font_unscii_8, 0);
     lv_obj_align(conn_label, LV_ALIGN_TOP_LEFT, 2, 2);
     corne_conn_init();
 
     /* Battery icon — top right */
     battery_icon_label = lv_label_create(screen);
-    lv_obj_align(battery_icon_label, LV_ALIGN_TOP_RIGHT, -2, 0);
+    lv_obj_set_style_text_font(battery_icon_label, &lv_font_unscii_8, 0);
+    lv_obj_align(battery_icon_label, LV_ALIGN_TOP_RIGHT, -2, 2);
 
     /* Battery % — below icon, smaller font */
     battery_label = lv_label_create(screen);
