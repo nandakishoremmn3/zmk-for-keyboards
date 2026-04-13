@@ -217,23 +217,23 @@ ZMK_SUBSCRIPTION(corne_conn, zmk_split_peripheral_status_changed);
 lv_obj_t *zmk_display_status_screen(void) {
     lv_obj_t *screen = lv_obj_create(NULL);
 
-    /* P keycap — left side */
+    /* P keycap — center */
     p_img = lv_image_create(screen);
-    lv_obj_align(p_img, LV_ALIGN_LEFT_MID, 2, 0);
+    lv_obj_align(p_img, LV_ALIGN_CENTER, 0, 0);
     update_p(false);
     logo_dirty = false;
     last_glitch_time = k_uptime_get();
     glitch_next_ms = 3000;
     lv_timer_create(glitch_timer_cb, 150, NULL);
 
-    /* Connection — top right */
+    /* Connection — top left */
     conn_label = lv_label_create(screen);
-    lv_obj_align(conn_label, LV_ALIGN_TOP_RIGHT, -2, 2);
+    lv_obj_align(conn_label, LV_ALIGN_TOP_LEFT, 2, 2);
     corne_conn_init();
 
-    /* Battery — bottom right */
+    /* Battery — top right */
     battery_label = lv_label_create(screen);
-    lv_obj_align(battery_label, LV_ALIGN_BOTTOM_RIGHT, -2, -2);
+    lv_obj_align(battery_label, LV_ALIGN_TOP_RIGHT, -2, 2);
     corne_battery_init();
 
     return screen;
