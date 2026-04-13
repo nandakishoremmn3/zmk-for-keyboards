@@ -61,7 +61,7 @@ static uint16_t glitch_rand(void) {
 static uint32_t glitch_next_ms = 3000;
 static uint8_t glitch_frames_left = 0;
 
-/* Apply glitch to QMK page-format buffer (4 pages x 128 cols) */
+/* Apply glitch to QMK page-format buffer */
 static void apply_glitch(uint8_t *buf) {
     if (glitch_frames_left == 0) {
         return;
@@ -71,7 +71,6 @@ static void apply_glitch(uint8_t *buf) {
     uint8_t fx = glitch_rand() % 4;
 
     if (fx == 0) {
-        /* Horizontal slice shift */
         uint8_t page = glitch_rand() % 4;
         uint8_t start = glitch_rand() % 96;
         int8_t shift = (glitch_rand() % 13) - 6;
@@ -87,7 +86,6 @@ static void apply_glitch(uint8_t *buf) {
             }
         }
     } else if (fx == 1) {
-        /* Noise block */
         uint8_t page = glitch_rand() % 4;
         uint8_t col = glitch_rand() % 100;
         uint8_t w = 8 + (glitch_rand() % 24);
@@ -95,7 +93,6 @@ static void apply_glitch(uint8_t *buf) {
             buf[page * 128 + c] = (uint8_t)glitch_rand();
         }
     } else if (fx == 2) {
-        /* Invert strip */
         uint8_t page = glitch_rand() % 4;
         uint8_t col = glitch_rand() % 80;
         uint8_t w = 20 + (glitch_rand() % 40);
@@ -103,7 +100,6 @@ static void apply_glitch(uint8_t *buf) {
             buf[page * 128 + c] = ~buf[page * 128 + c];
         }
     } else {
-        /* Screen tear */
         uint8_t src = glitch_rand() % 4;
         uint8_t dst = (src + 1 + (glitch_rand() % 3)) % 4;
         uint8_t col = glitch_rand() % 64;
@@ -114,30 +110,54 @@ static void apply_glitch(uint8_t *buf) {
     }
 }
 
-/* Render logo to canvas using lv_canvas_set_px */
-static lv_obj_t *canvas;
-static uint8_t canvas_buf[2048]; /* generous buffer for I1 canvas */
-static int64_t last_glitch_time;
+/* Convert QMK page-column to LVGL I1 row-major format
+ * LVGL I1: 8-byte palette + row-major pixel data (MSB = leftmost)
+ */
+static void convert_to_lvgl_i1(const uint8_t *qmk_buf, uint8_t *out) {
+    /* Palette: index 0 = white (background), index 1 = black (foreground) */
+    out[0] = 0xFF; out[1] = 0xFF; out[2] = 0xFF; out[3] = 0xFF; /* white */
+    out[4] = 0x00; out[5] = 0x00; out[6] = 0x00; out[7] = 0xFF; /* black */
 
-static void render_logo(void) {
-    uint8_t buf[512];
-    memcpy(buf, raw_logo, 512);
-    apply_glitch(buf);
+    uint8_t *pixels = out + 8;
+    memset(pixels, 0, 16 * 32);
 
-    /* Convert QMK page-column format and draw pixel by pixel */
     for (int page = 0; page < 4; page++) {
         for (int col = 0; col < 128; col++) {
-            uint8_t val = buf[page * 128 + col];
+            uint8_t val = qmk_buf[page * 128 + col];
             for (int bit = 0; bit < 8; bit++) {
-                int y = page * 8 + bit;
-                bool pixel_set = (val >> bit) & 1;
-                lv_canvas_set_px(canvas, col, y,
-                    pixel_set ? lv_color_white() : lv_color_black(),
-                    LV_OPA_COVER);
+                if (val & (1 << bit)) {
+                    int y = page * 8 + bit;
+                    pixels[y * 16 + (col / 8)] |= (0x80 >> (col % 8));
+                }
             }
         }
     }
-    lv_obj_invalidate(canvas);
+}
+
+/* Image buffer: 8 bytes palette + 512 bytes pixels */
+static uint8_t img_buf[8 + 512];
+
+static lv_image_dsc_t logo_dsc = {
+    .header = {
+        .cf = LV_COLOR_FORMAT_I1,
+        .w = 128,
+        .h = 32,
+    },
+    .data_size = sizeof(img_buf),
+    .data = img_buf,
+};
+
+static lv_obj_t *logo_img;
+static int64_t last_glitch_time;
+
+static void update_logo(void) {
+    uint8_t buf[512];
+    memcpy(buf, raw_logo, 512);
+    apply_glitch(buf);
+    convert_to_lvgl_i1(buf, img_buf);
+    logo_dsc.data = img_buf;
+    lv_image_set_src(logo_img, &logo_dsc);
+    lv_obj_invalidate(logo_img);
 }
 
 static void glitch_timer_cb(lv_timer_t *timer) {
@@ -149,18 +169,19 @@ static void glitch_timer_cb(lv_timer_t *timer) {
         glitch_next_ms = 2000 + (glitch_rand() % 6000);
     }
 
-    render_logo();
+    update_logo();
 }
 
 lv_obj_t *zmk_display_status_screen(void) {
     lv_obj_t *screen = lv_obj_create(NULL);
 
-    canvas = lv_canvas_create(screen);
-    lv_canvas_set_buffer(canvas, canvas_buf, 128, 32, LV_COLOR_FORMAT_I1);
-    lv_canvas_fill_bg(canvas, lv_color_black(), LV_OPA_COVER);
-    lv_obj_align(canvas, LV_ALIGN_CENTER, 0, 0);
+    logo_img = lv_image_create(screen);
+    lv_obj_align(logo_img, LV_ALIGN_CENTER, 0, 0);
 
-    render_logo();
+    /* Initial render */
+    convert_to_lvgl_i1((uint8_t *)raw_logo, img_buf);
+    logo_dsc.data = img_buf;
+    lv_image_set_src(logo_img, &logo_dsc);
 
     last_glitch_time = k_uptime_get();
     lv_timer_create(glitch_timer_cb, 150, NULL);
