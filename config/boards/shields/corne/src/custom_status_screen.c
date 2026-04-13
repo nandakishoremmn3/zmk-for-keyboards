@@ -37,6 +37,13 @@ static const uint8_t raw_p_keycap[4 * 24] = {
 
 /* ── Glitch engine ── */
 
+#define GLITCH_INTERVAL_MIN_MS 2000
+#define GLITCH_INTERVAL_RANGE_MS 6000
+#define GLITCH_INITIAL_DELAY_MS 3000
+#define GLITCH_FRAMES_MIN 2
+#define GLITCH_FRAMES_RANGE 4
+#define GLITCH_TIMER_MS 150
+
 static uint16_t glitch_seed = 42;
 static uint32_t glitch_next_ms;
 static uint8_t glitch_frames_left = 0;
@@ -132,8 +139,8 @@ static void glitch_timer_cb(lv_timer_t *timer) {
     if (glitch_frames_left == 0) {
         if ((now - last_glitch_time) > (int64_t)glitch_next_ms) {
             last_glitch_time = now;
-            glitch_frames_left = 2 + (glitch_rand() % 4);
-            glitch_next_ms = 2000 + (glitch_rand() % 6000);
+            glitch_frames_left = GLITCH_FRAMES_MIN + (glitch_rand() % GLITCH_FRAMES_RANGE);
+            glitch_next_ms = GLITCH_INTERVAL_MIN_MS + (glitch_rand() % GLITCH_INTERVAL_RANGE_MS);
         } else if (logo_dirty) {
             update_p(false);
             logo_dirty = false;
@@ -165,8 +172,8 @@ lv_obj_t *zmk_display_status_screen(void) {
     update_p(false);
     logo_dirty = false;
     last_glitch_time = k_uptime_get();
-    glitch_next_ms = 3000;
-    lv_timer_create(glitch_timer_cb, 150, NULL);
+    glitch_next_ms = GLITCH_INITIAL_DELAY_MS;
+    lv_timer_create(glitch_timer_cb, GLITCH_TIMER_MS, NULL);
 
     /* Built-in peripheral status — top left */
     zmk_widget_peripheral_status_init(&peripheral_widget, screen);
