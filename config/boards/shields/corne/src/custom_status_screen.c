@@ -167,8 +167,20 @@ static lv_obj_t *battery_label;
 struct battery_state { uint8_t level; };
 
 static void battery_update_cb(struct battery_state state) {
-    char text[5];
-    snprintf(text, sizeof(text), "%u%%", state.level);
+    char text[16];
+    const char *icon;
+    if (state.level > 95) {
+        icon = LV_SYMBOL_BATTERY_FULL;
+    } else if (state.level > 65) {
+        icon = LV_SYMBOL_BATTERY_3;
+    } else if (state.level > 35) {
+        icon = LV_SYMBOL_BATTERY_2;
+    } else if (state.level > 5) {
+        icon = LV_SYMBOL_BATTERY_1;
+    } else {
+        icon = LV_SYMBOL_BATTERY_EMPTY;
+    }
+    snprintf(text, sizeof(text), "%s %u%%", icon, state.level);
     lv_label_set_text(battery_label, text);
 }
 
