@@ -110,20 +110,23 @@ static void apply_glitch(uint8_t *buf) {
 
 /* ── Logo image rendering ── */
 
+#define LOGO_HEIGHT 22
+
 static void convert_to_lvgl_i1(const uint8_t *qmk_buf, uint8_t *out) {
     /* I1 palette: index 0 = white (bg), index 1 = black (fg) */
     out[0] = 0xFF; out[1] = 0xFF; out[2] = 0xFF; out[3] = 0xFF;
     out[4] = 0x00; out[5] = 0x00; out[6] = 0x00; out[7] = 0xFF;
 
     uint8_t *pixels = out + 8;
-    memset(pixels, 0, 16 * 32);
+    memset(pixels, 0, 16 * LOGO_HEIGHT);
 
     for (int page = 0; page < 4; page++) {
         for (int col = 0; col < 128; col++) {
             uint8_t val = qmk_buf[page * 128 + col];
             for (int bit = 0; bit < 8; bit++) {
+                int y = page * 8 + bit;
+                if (y >= LOGO_HEIGHT) continue;
                 if (val & (1 << bit)) {
-                    int y = page * 8 + bit;
                     pixels[y * 16 + (col / 8)] |= (0x80 >> (col % 8));
                 }
             }
@@ -131,9 +134,9 @@ static void convert_to_lvgl_i1(const uint8_t *qmk_buf, uint8_t *out) {
     }
 }
 
-static uint8_t img_buf[8 + 512];
+static uint8_t img_buf[8 + 16 * LOGO_HEIGHT]; /* palette + pixel rows */
 static lv_image_dsc_t logo_dsc = {
-    .header = { .cf = LV_COLOR_FORMAT_I1, .w = 128, .h = 22 },
+    .header = { .cf = LV_COLOR_FORMAT_I1, .w = 128, .h = LOGO_HEIGHT },
     .data_size = sizeof(img_buf),
     .data = img_buf,
 };
