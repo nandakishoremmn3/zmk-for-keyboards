@@ -204,7 +204,9 @@ static lv_obj_t *conn_label;
 struct conn_state { bool connected; };
 
 static void conn_update_cb(struct conn_state state) {
-    lv_label_set_text(conn_label, state.connected ? "BT:OK" : "BT:--");
+    lv_label_set_text(conn_label,
+        state.connected ? LV_SYMBOL_WIFI " " LV_SYMBOL_OK
+                        : LV_SYMBOL_WIFI " " LV_SYMBOL_CLOSE);
 }
 
 static struct conn_state conn_get_state(const zmk_event_t *eh) {
@@ -239,9 +241,8 @@ lv_obj_t *zmk_display_status_screen(void) {
     glitch_next_ms = 3000;
     lv_timer_create(glitch_timer_cb, 150, NULL);
 
-    /* Connection — top left */
+    /* Connection — top left (default Montserrat font has symbols) */
     conn_label = lv_label_create(screen);
-    lv_obj_set_style_text_font(conn_label, &lv_font_unscii_8, 0);
     lv_obj_align(conn_label, LV_ALIGN_TOP_LEFT, 2, 2);
     corne_conn_init();
 
