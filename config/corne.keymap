@@ -149,10 +149,10 @@
         base_layer {
             display-name = "BASE";
             bindings = <
-&kp TAB    &kp B             &kp Y               &kp O           &kp U           &kp SQT    &kp DOUBLE_QUOTES  &kp L            &kp D            &kp W                &kp V              &kp Z
-&none      &mt LEFT_SHIFT C  &mt LEFT_CONTROL I  &mt LEFT_GUI E  &mt LEFT_ALT A  &kp COMMA  &kp PERIOD         &mt RIGHT_ALT H  &mt RIGHT_GUI T  &mt RIGHT_CONTROL S  &mt RIGHT_SHIFT N  &kp Q
-&kp LSHFT  &kp G             &kp X               &kp J           &kp V           &to 1      &kp SEMICOLON      &kp R            &kp M            &kp F                &kp P              &mo 6
-                                                 &lt 2 ESC       &mo 4           &kp SPACE  &kp ENTER          &mo 5            &kp BSPC
+&kp TAB  &kp B             &kp Y               &kp O           &kp U           &kp SQT    &kp DOUBLE_QUOTES  &kp L            &kp D            &kp W                &kp V              &kp Z
+&none    &mt LEFT_SHIFT C  &mt LEFT_CONTROL I  &mt LEFT_GUI E  &mt LEFT_ALT A  &kp COMMA  &kp PERIOD         &mt RIGHT_ALT H  &mt RIGHT_GUI T  &mt RIGHT_CONTROL S  &mt RIGHT_SHIFT N  &kp Q
+&none    &kp G             &kp X               &kp J           &kp V           &to 1      &kp SEMICOLON      &kp R            &kp M            &kp F                &kp P              &mo 6
+                                               &lt 2 ESC       &mo 4           &kp SPACE  &kp ENTER          &mo 5            &kp BSPC
             >;
         };
 
@@ -208,7 +208,7 @@
             bindings = <
 &trans  &trans  &trans  &trans  &trans  &trans  &bt BT_SEL 0   &bt BT_SEL 1   &bt BT_SEL 2   &bt BT_SEL 3    &bt BT_SEL 4   &trans
 &trans  &trans  &trans  &trans  &trans  &trans  &bt BT_DISC 0  &bt BT_DISC 1  &bt BT_DISC 2  &bt BT_DISC 3   &bt BT_DISC 4  &trans
-&trans  &trans  &trans  &trans  &trans  &trans  &bootloader    &out OUT_TOG   &bt BT_CLR     &bt BT_CLR_ALL  &trans         &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &none          &out OUT_TOG   &bt BT_CLR     &bt BT_CLR_ALL  &trans         &trans
                         &trans  &trans  &trans  &trans         &trans         &trans
             >;
         };
