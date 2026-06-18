@@ -16,12 +16,8 @@
 //   Layer 6: MOUSE   — mouse movement, scroll, buttons (hold TAB)
 
 #include <behaviors.dtsi>
-#include <dt-bindings/zmk/bt.h>
-#include <dt-bindings/zmk/ext_power.h>
 #include <dt-bindings/zmk/keys.h>
-#include <dt-bindings/zmk/outputs.h>
 #include <dt-bindings/zmk/pointing.h>
-#include <dt-bindings/zmk/rgb.h>
 
 #define BASE  0
 #define NAV   1
@@ -159,7 +155,7 @@
 &kp TAB    &kp B             &kp Y               &kp O           &kp U           &kp SQT    &kp DOUBLE_QUOTES  &kp L            &kp D            &kp W                &kp V              &kp Z
 &none      &mt LEFT_SHIFT C  &mt LEFT_CONTROL I  &mt LEFT_GUI E  &mt LEFT_ALT A  &kp COMMA  &kp PERIOD         &mt RIGHT_ALT H  &mt RIGHT_GUI T  &mt RIGHT_CONTROL S  &mt RIGHT_SHIFT N  &kp Q
 &kp LSHFT  &kp G             &kp X               &kp J           &kp V           &to 1      &kp SEMICOLON      &kp R            &kp M            &kp F                &kp P              &none
-                                                 &lt 2 ESC       &mo 4           &kp SPACE  &kp ENTER          &mo 6            &lt 7 DEL
+                                                 &lt 2 ESC       &mo 4           &kp SPACE  &kp ENTER          &mo 5            &lt 6 DEL
             >;
         };
 
@@ -201,23 +197,13 @@
             >;
         };
 
-        media_layer {
-            display-name = "MEDIA";
-            bindings = <
-&none  &none     &none     &none      &none      &none  &rgb_ug RGB_TOG    &rgb_ug RGB_EFF  &rgb_ug RGB_HUI  &rgb_ug RGB_SAI  &none         &none
-&none  &kp LGUI  &kp LALT  &kp LCTRL  &kp LSHFT  &none  &ext_power EP_TOG  &kp C_PREV       &kp C_VOL_DN     &kp C_VOL_UP     &kp C_NEXT    &none
-&none  &none     &none     &none      &none      &none  &out OUT_TOG       &bt BT_SEL 0     &bt BT_SEL 1     &bt BT_SEL 2     &bt BT_SEL 3  &bt BT_CLR
-                           &none      &none      &none  &kp C_STOP         &kp C_PP         &kp C_MUTE
-            >;
-        };
-
         sym_layer {
             display-name = "SYM";
             bindings = <
-&none  &kp LBRC   &kp AMPS  &kp ASTRK  &kp LPAR   &kp RBRC   &none  &none      &none      &none     &none     &none
-&none  &kp COLON  &kp DLLR  &kp PRCNT  &kp CARET  &kp PLUS   &none  &kp RSHFT  &kp RCTRL  &kp RALT  &kp RGUI  &none
-&none  &kp TILDE  &kp EXCL  &kp AT     &kp HASH   &kp PIPE   &none  &none      &none      &none     &none     &none
-                            &kp LPAR   &kp RPAR   &kp UNDER  &none  &none      &none
+&none  &kp GRAVE      &kp LS(LT)  &kp LS(GT)    &kp LS(AT)  &kp LS(QMARK)  &kp LS(AMPS)   &kp LS(UNDER)  &kp LBKT      &kp RBKT      &kp LS(PRCNT)  &none
+&none  &kp LS(EXCL)   &kp MINUS   &kp LS(PLUS)  &kp EQUAL   &kp LS(POUND)  &kp LS(PIPE)   &kp LS(COLON)  &kp LS(LPAR)  &kp LS(RPAR)  &none          &none
+&none  &kp LS(CARET)  &kp FSLH    &kp LS(STAR)  &kp BSLH    &kp LS(CARET)  &kp LS(TILDE)  &kp LS(DLLR)   &kp LS(LBRC)  &kp LS(RBRC)  &none          &none
+                                  &none         &none       &none          &none          &none          &none
             >;
         };
 
