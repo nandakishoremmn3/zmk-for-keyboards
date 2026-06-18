@@ -159,7 +159,7 @@
 &kp TAB    &kp B             &kp Y               &kp O           &kp U           &kp SQT    &kp DOUBLE_QUOTES  &kp L            &kp D            &kp W                &kp V              &kp Z
 &none      &mt LEFT_SHIFT C  &mt LEFT_CONTROL I  &mt LEFT_GUI E  &mt LEFT_ALT A  &kp COMMA  &kp PERIOD         &mt RIGHT_ALT H  &mt RIGHT_GUI T  &mt RIGHT_CONTROL S  &mt RIGHT_SHIFT N  &kp Q
 &kp LSHFT  &kp G             &kp X               &kp J           &kp V           &to 1      &kp SEMICOLON      &kp R            &kp M            &kp F                &kp P              &none
-                                                 &lt 2 ESC       &mo 3           &kp SPACE  &kp ENTER          &mo 5            &lt 6 DEL
+                                                 &lt 2 ESC       &mo 4           &kp SPACE  &kp ENTER          &mo 6            &lt 7 DEL
             >;
         };
 
@@ -175,20 +175,29 @@
         nav_layer {
             display-name = "NAV";
             bindings = <
-&none  &none     &kp LC(LEFT)  &kp UP    &kp LC(RIGHT)  &none     &msc SCRL_UP    &msc SCRL_LEFT  &mmv MOVE_UP    &msc SCRL_RIGHT  &none  &none
-&none  &mkp MB4  &kp LEFT      &kp DOWN  &kp RIGHT      &mkp MB5  &msc SCRL_DOWN  &mmv MOVE_LEFT  &mmv MOVE_DOWN  &mmv MOVE_RIGHT  &none  &none
-&none  &none     &kp HOME      &none     &kp END        &none     &none           &none           &none           &none            &none  &none
-                               &none     &none          &none     &mkp RCLK       &mkp MCLK       &mkp LCLK
+&none  &kp LG(LC(LEFT))  &kp LC(LEFT)  &kp UP    &kp LC(RIGHT)  &kp LG(LC(RIGHT))  &kp LC(LGUI)    &kp LCTRL       &mmv MOVE_UP    &msc SCRL_RIGHT  &none  &none
+&none  &mkp MB4          &kp LEFT      &kp DOWN  &kp RIGHT      &mkp MB5           &msc SCRL_DOWN  &mmv MOVE_LEFT  &mmv MOVE_DOWN  &mmv MOVE_RIGHT  &none  &none
+&none  &none             &kp HOME      &none     &kp END        &none              &none           &none           &none           &none            &none  &none
+                                       &none     &none          &none              &mkp RCLK       &mkp MCLK       &mkp LCLK
+            >;
+        };
+
+        NAV_MACOS {
+            bindings = <
+&trans  &kp LC(LEFT)  &kp LA(LEFT)  &trans  &kp LA(RIGHT)  &kp LC(RIGHT)  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans        &trans        &trans  &trans         &trans         &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans        &trans        &trans  &trans         &trans         &trans  &trans  &trans  &trans  &trans  &trans
+                                    &trans  &trans         &trans         &trans  &trans  &trans
             >;
         };
 
         num_layer {
             display-name = "NUM";
             bindings = <
-&none  &kp LBKT   &kp N7  &kp N8   &kp N9  &kp RBKT   &none  &none      &none      &none     &none     &none
-&none  &kp SEMI   &kp N4  &kp N5   &kp N6  &kp EQUAL  &none  &kp RSHFT  &kp RCTRL  &kp RALT  &kp RGUI  &none
-&none  &kp GRAVE  &kp N1  &kp N2   &kp N3  &kp BSLH   &none  &none      &none      &none     &none     &none
-                          &kp DOT  &kp N0  &kp MINUS  &none  &none      &none
+&none  &none  &kp N9  &kp N8  &kp N7  &none   &none  &kp F1  &kp F2   &kp F3   &kp F4   &none
+&none  &none  &kp N3  &kp N2  &kp N1  &kp N0  &none  &kp F5  &kp F6   &kp F7   &kp F8   &none
+&none  &none  &kp N6  &kp N5  &kp N4  &none   &none  &kp F9  &kp F10  &kp F11  &kp F12  &none
+                      &none   &none   &none   &none  &none   &none
             >;
         };
 
