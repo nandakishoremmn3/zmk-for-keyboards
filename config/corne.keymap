@@ -86,76 +86,54 @@
 
         // -- Tier 2: High Value --
 
-        combo_tab {
-            bindings = <&kp TAB>;
-            key-positions = <14 15>;        // S + D
-            timeout-ms = <30>;
-            require-prior-idle-ms = <150>;
-        };
-
-        combo_enter {
-            bindings = <&kp RET>;
-            key-positions = <20 21>;        // K + L
-            timeout-ms = <30>;
-            require-prior-idle-ms = <150>;
-        };
-
-        combo_copy {
+        combo_copy_mac {
             bindings = <&kp LG(C)>;
             key-positions = <26 27>;        // X + C
             timeout-ms = <30>;
             require-prior-idle-ms = <150>;
+            layers = <1>;
         };
 
-        combo_paste {
+        combo_paste_macos {
             bindings = <&kp LG(V)>;
             key-positions = <27 28>;        // C + V
             timeout-ms = <30>;
             require-prior-idle-ms = <150>;
+            layers = <1>;
         };
 
-        combo_cut {
+        combo_cut_macos {
             bindings = <&kp LG(X)>;
             key-positions = <26 28>;        // X + V (skip middle)
             timeout-ms = <30>;
             require-prior-idle-ms = <150>;
+            layers = <1>;
         };
 
         // -- Tier 3: Vertical Symbol Combos --
 
-        combo_minus {
-            bindings = <&kp MINUS>;
-            key-positions = <19 31>;        // J + M (right index vertical)
-            timeout-ms = <40>;
-            require-prior-idle-ms = <100>;
-        };
-
-        combo_underscore {
-            bindings = <&kp UNDER>;
-            key-positions = <18 30>;        // H + N (right inner vertical)
-            timeout-ms = <40>;
-            require-prior-idle-ms = <100>;
-        };
-
-        combo_equal {
-            bindings = <&kp EQUAL>;
-            key-positions = <16 28>;        // F + V (left index vertical)
-            timeout-ms = <40>;
-            require-prior-idle-ms = <100>;
-        };
-
-        combo_grave {
-            bindings = <&kp GRAVE>;
-            key-positions = <14 26>;        // S + X (left ring vertical)
-            timeout-ms = <40>;
-            require-prior-idle-ms = <100>;
-        };
-
-        combo_semi {
-            bindings = <&kp SEMI>;
-            key-positions = <21 22>;        // L + ' (right ring+pinky home)
+        combo_copy_win {
+            bindings = <&kp LC(C)>;
+            key-positions = <26 27>;
             timeout-ms = <30>;
             require-prior-idle-ms = <150>;
+            layers = <0>;
+        };
+
+        combo_paste_win {
+            bindings = <&kp LC(V)>;
+            key-positions = <27 28>;
+            timeout-ms = <30>;
+            require-prior-idle-ms = <150>;
+            layers = <0>;
+        };
+
+        combo_cut_win {
+            bindings = <&kp LC(X)>;
+            key-positions = <26 28>;
+            timeout-ms = <30>;
+            require-prior-idle-ms = <150>;
+            layers = <0>;
         };
     };
 
@@ -181,7 +159,16 @@
 &kp TAB       &kp B             &kp Y               &kp O           &kp U           &kp SQT    &kp DOUBLE_QUOTES  &kp L            &kp D            &kp W                &kp V              &kp Z
 &kp CAPSLOCK  &mt LEFT_SHIFT C  &mt LEFT_CONTROL I  &mt LEFT_GUI E  &mt LEFT_ALT A  &kp COMMA  &kp PERIOD         &mt RIGHT_ALT H  &mt RIGHT_GUI T  &mt RIGHT_CONTROL S  &mt RIGHT_SHIFT N  &kp Q
 &kp LSHFT     &kp G             &kp X               &kp J           &kp V           &none      &kp SEMICOLON      &kp R            &kp M            &kp F                &kp P              &none
-                                                    &lt 1 ESC       &mo 2           &kp SPACE  &kp ENTER          &mo 4            &lt FUN DEL
+                                                    &lt 2 ESC       &mo 3           &kp SPACE  &kp ENTER          &mo 5            &lt 6 DEL
+            >;
+        };
+
+        BASE_MACOS {
+            bindings = <
+&trans  &trans  &trans  &trans        &trans        &trans  &trans  &trans         &trans         &trans  &trans  &trans
+&trans  &trans  &trans  &kp LEFT_ALT  &kp LEFT_GUI  &trans  &trans  &kp RIGHT_GUI  &kp RIGHT_ALT  &trans  &trans  &trans
+&trans  &trans  &trans  &trans        &trans        &trans  &trans  &trans         &trans         &trans  &trans  &trans
+                        &trans        &trans        &trans  &trans  &trans         &trans
             >;
         };
 
