@@ -189,10 +189,10 @@
         nav_layer {
             display-name = "NAV";
             bindings = <
-&none  &kp LG(LC(LEFT))  &kp LC(LEFT)  &kp UP    &kp LC(RIGHT)  &kp LG(LC(RIGHT))  &msc SCRL_UP    &mmv MOVE_LEFT  &mmv MOVE_UP    &msc SCRL_RIGHT  &none  &none
-&none  &mkp MB4          &kp LEFT      &kp DOWN  &kp RIGHT      &mkp MB5           &msc SCRL_DOWN  &mmv MOVE_LEFT  &mmv MOVE_DOWN  &mmv MOVE_RIGHT  &none  &none
-&none  &none             &kp HOME      &none     &kp END        &none              &none           &none           &none           &none            &none  &none
-                                       &none     &none          &none              &mkp RCLK       &mkp MCLK       &mkp LCLK
+&none           &kp LG(LC(LEFT))  &kp LC(LEFT)  &kp UP    &kp LC(RIGHT)  &kp LG(LC(RIGHT))  &msc SCRL_UP    &msc SCRL_LEFT  &mmv MOVE_UP    &msc SCRL_RIGHT  &none  &none
+&kp LEFT_SHIFT  &mkp MB4          &kp LEFT      &kp DOWN  &kp RIGHT      &mkp MB5           &msc SCRL_DOWN  &mmv MOVE_LEFT  &mmv MOVE_DOWN  &mmv MOVE_RIGHT  &none  &none
+&none           &none             &kp HOME      &none     &kp END        &none              &none           &none           &none           &none            &none  &none
+                                                &none     &none          &none              &mkp LCLK       &mkp MCLK       &mkp RCLK
             >;
         };
 
