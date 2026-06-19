@@ -1,6 +1,6 @@
 /*
- * Custom Corne Layout Display
- * Working Battery, Conn, WPM, and Bongo Cat (Dynamic Split Focus Mode)
+ * Custom Corne Display Layout
+ * WPM + Bongo Cat with Dynamic Typing Focus Mode & Native Status Widgets
  */
 
 #include <stdbool.h>
@@ -14,7 +14,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #include <zmk/display/widgets/battery_status.h>
 #include <zmk/display/widgets/peripheral_status.h>
 
-// Only import WPM libraries on the master (Central) side to prevent peripheral linker crashes
+// Only import active typing trackers on the Central side to prevent peripheral linker crashes
 #if !defined(CONFIG_ZMK_SPLIT_PERIPHERAL)
 #include <zmk/display/widgets/wpm_status.h>
 #include <zmk/wpm.h>
@@ -61,30 +61,30 @@ static int64_t last_typing_time = 0;
 static lv_obj_t *peripheral_obj_handle;
 static lv_obj_t *battery_obj_handle;
 
-/* Clock execution loop routing logic based on side identity */
+/* Timer Callback Loop: Manages layout animations and widget visibility states */
 static void screen_timer_cb(lv_timer_t *timer) {
     uint32_t current_wpm = 0;
     int64_t now = k_uptime_get();
 
 #if !defined(CONFIG_ZMK_SPLIT_PERIPHERAL)
-    // Left/Central Half: Query live system typing speeds
+    // Left/Central Half: Queries live typing speed metrics from the system matrix
     current_wpm = zmk_wpm_get_wpm();
 #else
-    // Right/Peripheral Half: Default to continuous slow tapping for visual styling
-    current_wpm = 10; 
+    // Right/Peripheral Half: Defaults to steady tapping to keep display animated
+    current_wpm = 10;
 #endif
     
     if (current_wpm > 0) {
         last_typing_time = now;
         
-        // Focus Mode Activation: Hide system items instantly upon typing
+        // Typing Focus Mode Trigger: Hide status widgets instantly while typing
         if (!typing_mode) {
             typing_mode = true;
             lv_obj_add_flag(peripheral_obj_handle, LV_OBJ_FLAG_HIDDEN);
             lv_obj_add_flag(battery_obj_handle, LV_OBJ_FLAG_HIDDEN);
         }
 
-        // Alternates left and right paws sequentially without random calculations
+        // Alternates paws sequentially (resolves old compiler issues)
         if (cat_state == 0) {
             cat_state = 1;
             cat_dsc.data = cat_left_paw;
@@ -99,7 +99,7 @@ static void screen_timer_cb(lv_timer_t *timer) {
         cat_state = 0;
         cat_dsc.data = cat_neutral;
 
-        // Restore Mode: Show stats back on screen after timeout passes
+        // Inactivity Timeout Trigger: Show status widgets again when typing stops
         if (typing_mode && (now - last_typing_time > IDLE_TIMEOUT_MS)) {
             typing_mode = false;
             lv_obj_remove_flag(peripheral_obj_handle, LV_OBJ_FLAG_HIDDEN);
@@ -118,26 +118,34 @@ static struct zmk_widget_peripheral_status peripheral_widget;
 static struct zmk_widget_wpm_status wpm_widget;
 #endif
 
+/* ── Screen layout (128x32) ──
+ *
+ * +----------+---------+---------+
+ * | BT status|         | Battery |
+ * +----------+         +---------+
+ * | WPM widget         | (Cat)   |
+ * +----------+---------+---------+
+ */
 lv_obj_t *zmk_display_status_screen(void) {
     lv_obj_t *screen = lv_obj_create(NULL);
 
-    /* Built-in connection status widget */
+    /* Built-in connection status — top left */
     zmk_widget_peripheral_status_init(&peripheral_widget, screen);
     peripheral_obj_handle = zmk_widget_peripheral_status_obj(&peripheral_widget);
     lv_obj_align(peripheral_obj_handle, LV_ALIGN_TOP_LEFT, 0, 0);
 
-    /* Built-in battery status widget */
+    /* Built-in battery status — top right */
     zmk_widget_battery_status_init(&battery_widget, screen);
     battery_obj_handle = zmk_widget_battery_status_obj(&battery_widget);
     lv_obj_align(battery_obj_handle, LV_ALIGN_TOP_RIGHT, 0, 0);
 
-    /* Built-in WPM text status tracker — Completely omitted on the peripheral side */
+    /* Built-in WPM text layout status widget — Omitted on the right half */
 #if !defined(CONFIG_ZMK_SPLIT_PERIPHERAL)
     zmk_widget_wpm_status_init(&wpm_widget, screen);
     lv_obj_align(zmk_widget_wpm_status_obj(&wpm_widget), LV_ALIGN_BOTTOM_LEFT, 0, 0);
 #endif
 
-    /* Custom Bongo Cat graphic block */
+    /* Custom Bongo Cat layout block — bottom right */
     cat_img = lv_image_create(screen);
     cat_dsc.data = cat_neutral;
     lv_image_set_src(cat_img, &cat_dsc);
