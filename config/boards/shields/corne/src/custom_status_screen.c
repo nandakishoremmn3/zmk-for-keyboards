@@ -61,6 +61,7 @@ static int64_t last_typing_time = 0;
 static lv_obj_t *peripheral_obj_handle;
 static lv_obj_t *battery_obj_handle;
 
+/* Fixed bit-shift pseudo-random engine */
 static uint16_t anim_rand(void) {
     static uint16_t seed = 42;
     seed ^= seed << 7;
