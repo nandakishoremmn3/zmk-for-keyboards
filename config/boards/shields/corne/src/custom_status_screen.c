@@ -17,18 +17,18 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 /* ── P keycap extracted from PARIX logo (cols 4-27, 24px wide x 32px tall) ── */
 
 static const uint8_t raw_p_keycap[4 * 24] = {
-    /* Page 0 (rows 0-7) */
-      0,  0,192,224,112, 48, 48, 48, 48, 48, 48, 48,
-     48, 48, 48, 48, 48, 48, 48, 48,112,224,192,  0,
-    /* Page 1 (rows 8-15) */
-      0,  0,255,255,  0,  0,  0,  0,  0,254, 66, 66,
-     66, 66,102, 60,  0,  0,  0,  0,  0,255,255,  0,
-    /* Page 2 (rows 16-23) */
-      0,  0,255,255,128,  0,  0,  0,  0,  7,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,128,255,255,  0,
-    /* Page 3 (rows 24-31) */
-      0,  0,  7, 15, 31, 31, 31, 31, 31, 31, 31, 31,
-     31, 31, 31, 31, 31, 31, 31, 31, 31, 15,  7,  0,
+    /* Page 0 (rows 0-7) - Top keycap frame edge */
+      0,   0, 252, 252,  60,  60,  60,  60,  60,  60,  60,  60,
+     60,  60,  60,  60,  60,  60,  60,  60, 252, 252,   0,   0,
+    /* Page 1 (rows 8-15) - Left/right frame walls + glyph top horizontal & diagonal split */
+      0,   0, 255, 255,   0,   0,   3,   3,   3,   3,   3, 195,
+    243, 243,  63,  63,  15,  15,   0,   0, 255, 255,   0,   0,
+    /* Page 2 (rows 16-23) - Left/right frame walls + glyph diagonal finish & bottom horizontal */
+      0,   0, 255, 255,   0,   0, 240, 252, 252, 207, 195, 195,
+    192, 192, 192, 192, 192, 192,   0,   0, 255, 255,   0,   0,
+    /* Page 3 (rows 24-31) - Bottom keycap frame base edge */
+      0,   0,  63,  63,  60,  60,  60,  60,  60,  60,  60,  60,
+     60,  60,  60,  60,  60,  60,  60,  60,  63,  63,   0,   0,
 };
 
 #define P_WIDTH  24
