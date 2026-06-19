@@ -128,6 +128,38 @@
             timeout-ms = <30>;
             require-prior-idle-ms = <150>;
         };
+
+        undo_win {
+            bindings = <&kp LC(Z)>;
+            key-positions = <25 26>;
+            timeout-ms = <30>;
+            require-prior-idle-ms = <150>;
+            layers = <0>;
+        };
+
+        redo_win {
+            bindings = <&kp LC(LS(Z))>;
+            key-positions = <28 29>;
+            timeout-ms = <30>;
+            require-prior-idle-ms = <150>;
+            layers = <0>;
+        };
+
+        undo_macos {
+            bindings = <&kp LG(Z)>;
+            key-positions = <25 26>;
+            timeout-ms = <30>;
+            require-prior-idle-ms = <150>;
+            layers = <0>;
+        };
+
+        redo_macos {
+            bindings = <&kp LS(LG(Z))>;
+            key-positions = <28 29>;
+            timeout-ms = <30>;
+            require-prior-idle-ms = <150>;
+            layers = <0>;
+        };
     };
 
     keymap {
