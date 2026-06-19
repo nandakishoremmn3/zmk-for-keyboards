@@ -11,11 +11,17 @@
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 #include <zmk/display.h>
-#include <zmk/display/widgets/battery_status.h>
-#include <zmk/display/widgets/peripheral_status.h>
 
-// Import WPM libraries safely on the master (Central) side
-#if !defined(CONFIG_ZMK_SPLIT_PERIPHERAL)
+// Guard core widgets with Zephyr feature detection macros to resolve linker issues
+#if IS_ENABLED(CONFIG_ZMK_WIDGET_BATTERY_STATUS)
+#include <zmk/display/widgets/battery_status.h>
+#endif
+
+#if IS_ENABLED(CONFIG_ZMK_WIDGET_PERIPHERAL_STATUS)
+#include <zmk/display/widgets/peripheral_status.h>
+#endif
+
+#if IS_ENABLED(CONFIG_ZMK_WIDGET_WPM_STATUS)
 #include <zmk/display/widgets/wpm_status.h>
 #include <zmk/wpm.h>
 #endif
@@ -58,33 +64,32 @@ static uint8_t cat_state = 0;
 static bool typing_mode = false;
 static int64_t last_typing_time = 0;
 
-static lv_obj_t *peripheral_obj_handle;
-static lv_obj_t *battery_obj_handle;
+static lv_obj_t *peripheral_obj_handle = NULL;
+static lv_obj_t *battery_obj_handle = NULL;
 
-/* Timer Callback Loop: Manages layout animations and widget visibility states */
 static void screen_timer_cb(lv_timer_t *timer) {
     uint32_t current_wpm = 0;
     int64_t now = k_uptime_get();
 
-#if !defined(CONFIG_ZMK_SPLIT_PERIPHERAL)
-    // Left/Central Half: Uses your version's actual system calculation function name
+#if IS_ENABLED(CONFIG_ZMK_WPM)
+    // Uses the version-appropriate function found in your logs
     current_wpm = zmk_wpm_get_state();
 #else
-    // Right/Peripheral Half: Default to continuous slow tapping for visual style
+    // Fallback animation metrics for the peripheral (Right side) compilation path
     current_wpm = 10;
 #endif
     
     if (current_wpm > 0) {
         last_typing_time = now;
         
-        // Typing Focus Mode Trigger: Hide status widgets instantly while typing
+        // Focus Mode Activation: Hide tracking items instantly while typing
         if (!typing_mode) {
             typing_mode = true;
-            lv_obj_add_flag(peripheral_obj_handle, LV_OBJ_FLAG_HIDDEN);
-            lv_obj_add_flag(battery_obj_handle, LV_OBJ_FLAG_HIDDEN);
+            if (peripheral_obj_handle) lv_obj_add_flag(peripheral_obj_handle, LV_OBJ_FLAG_HIDDEN);
+            if (battery_obj_handle) lv_obj_add_flag(battery_obj_handle, LV_OBJ_FLAG_HIDDEN);
         }
 
-        // Alternates paws sequentially
+        // Paw animation cyclic step loop
         if (cat_state == 0) {
             cat_state = 1;
             cat_dsc.data = cat_left_paw;
@@ -96,14 +101,25 @@ static void screen_timer_cb(lv_timer_t *timer) {
             cat_dsc.data = cat_neutral;
         }
     } else {
+#if !IS_ENABLED(CONFIG_ZMK_WPM)
+        // Keep peripheral side cat slowly typing contentedly
+        if (cat_state == 0) {
+            cat_state = 1;
+            cat_dsc.data = cat_left_paw;
+        } else {
+            cat_state = 0;
+            cat_dsc.data = cat_neutral;
+        }
+#else
         cat_state = 0;
         cat_dsc.data = cat_neutral;
+#endif
 
-        // Inactivity Timeout Trigger: Show status widgets again when typing stops
+        // Restore Mode: Reveal layout elements back onto screen after timeout finishes
         if (typing_mode && (now - last_typing_time > IDLE_TIMEOUT_MS)) {
             typing_mode = false;
-            lv_obj_remove_flag(peripheral_obj_handle, LV_OBJ_FLAG_HIDDEN);
-            lv_obj_remove_flag(battery_obj_handle, LV_OBJ_FLAG_HIDDEN);
+            if (peripheral_obj_handle) lv_obj_remove_flag(peripheral_obj_handle, LV_OBJ_FLAG_HIDDEN);
+            if (battery_obj_handle) lv_obj_remove_flag(battery_obj_handle, LV_OBJ_FLAG_HIDDEN);
         }
     }
     
@@ -111,28 +127,38 @@ static void screen_timer_cb(lv_timer_t *timer) {
     lv_obj_invalidate(cat_img);
 }
 
+// Memory block allocations for widgets
+#if IS_ENABLED(CONFIG_ZMK_WIDGET_BATTERY_STATUS)
 static struct zmk_widget_battery_status battery_widget;
-static struct zmk_widget_peripheral_status peripheral_widget;
+#endif
 
-#if !defined(CONFIG_ZMK_SPLIT_PERIPHERAL)
+#if IS_ENABLED(CONFIG_ZMK_WIDGET_PERIPHERAL_STATUS)
+static struct zmk_widget_peripheral_status peripheral_widget;
+#endif
+
+#if IS_ENABLED(CONFIG_ZMK_WIDGET_WPM_STATUS)
 static struct zmk_widget_wpm_status wpm_widget;
 #endif
 
 lv_obj_t *zmk_display_status_screen(void) {
     lv_obj_t *screen = lv_obj_create(NULL);
 
-    /* Built-in connection status — top left */
+    /* Built-in connection status — top left (Renders exclusively on Right side config) */
+#if IS_ENABLED(CONFIG_ZMK_WIDGET_PERIPHERAL_STATUS)
     zmk_widget_peripheral_status_init(&peripheral_widget, screen);
     peripheral_obj_handle = zmk_widget_peripheral_status_obj(&peripheral_widget);
     lv_obj_align(peripheral_obj_handle, LV_ALIGN_TOP_LEFT, 0, 0);
+#endif
 
     /* Built-in battery status — top right */
+#if IS_ENABLED(CONFIG_ZMK_WIDGET_BATTERY_STATUS)
     zmk_widget_battery_status_init(&battery_widget, screen);
     battery_obj_handle = zmk_widget_battery_status_obj(&battery_widget);
     lv_obj_align(battery_obj_handle, LV_ALIGN_TOP_RIGHT, 0, 0);
+#endif
 
-    /* Built-in WPM text layout status widget — Omitted on the right half */
-#if !defined(CONFIG_ZMK_SPLIT_PERIPHERAL)
+    /* Built-in WPM text layout status widget — bottom left (Renders exclusively on Left side master) */
+#if IS_ENABLED(CONFIG_ZMK_WIDGET_WPM_STATUS)
     zmk_widget_wpm_status_init(&wpm_widget, screen);
     lv_obj_align(zmk_widget_wpm_status_obj(&wpm_widget), LV_ALIGN_BOTTOM_LEFT, 0, 0);
 #endif
