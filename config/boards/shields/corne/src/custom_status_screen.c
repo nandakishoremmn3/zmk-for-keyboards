@@ -1,21 +1,19 @@
 /*
  * Custom Corne Layout Display
- * WPM + Bongo Cat with Dynamic Typing Focus Mode
+ * WPM + Bongo Cat with Dynamic Typing Focus Mode (Pure LVGL)
  */
 
 #include <stdbool.h>
 #include <string.h>
+#include <stdio.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 #include <zmk/display.h>
-#include <zmk/display/widgets/battery_status.h>
-#include <zmk/display/widgets/peripheral_status.h>
 
-// Linker safety boundary: Only include typing trackers on the Central Master side
-#if !defined(CONFIG_ZMK_SPLIT_PERIPHERAL)
-#include <zmk/display/widgets/wpm_status.h>
+// Safely pull calculations only if available
+#if IS_ENABLED(CONFIG_ZMK_WPM)
 #include <zmk/wpm.h>
 #endif
 
@@ -53,12 +51,11 @@ static lv_image_dsc_t cat_dsc = {
 #define IDLE_TIMEOUT_MS 3000
 
 static lv_obj_t *cat_img;
+static lv_obj_t *wpm_label;
+static lv_obj_t *status_label; // Single status label replacing problematic widgets
 static uint8_t cat_state = 0;
 static bool typing_mode = false;
 static int64_t last_typing_time = 0;
-
-static lv_obj_t *peripheral_obj_handle;
-static lv_obj_t *battery_obj_handle;
 
 static uint16_t anim_rand(void) {
     static uint16_t seed = 42;
@@ -68,23 +65,26 @@ static uint16_t anim_rand(void) {
     return seed;
 }
 
-/* Execution Clock: Handles animations and dynamic focus swaps */
+/* Loop clock processing layout visibility and WPM print states */
 static void screen_timer_cb(lv_timer_t *timer) {
     uint32_t current_wpm = 0;
     int64_t now = k_uptime_get();
 
-    // Read live speed on the Central half; remain idle on the Peripheral half
-#if !defined(CONFIG_ZMK_SPLIT_PERIPHERAL)
+#if IS_ENABLED(CONFIG_ZMK_WPM)
     current_wpm = zmk_wpm_get_wpm();
 #endif
+
+    // Update WPM Text readout string
+    char wpm_str[16];
+    snprintf(wpm_str, sizeof(wpm_str), "WPM: %d", current_wpm);
+    lv_label_set_text(wpm_label, wpm_str);
     
     if (current_wpm > 0) {
         last_typing_time = now;
         
         if (!typing_mode) {
             typing_mode = true;
-            lv_obj_add_flag(peripheral_obj_handle, LV_OBJ_FLAG_HIDDEN);
-            lv_obj_add_flag(battery_obj_handle, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(status_label, LV_OBJ_FLAG_HIDDEN);
         }
 
         if (cat_state == 0) {
@@ -100,8 +100,7 @@ static void screen_timer_cb(lv_timer_t *timer) {
 
         if (typing_mode && (now - last_typing_time > IDLE_TIMEOUT_MS)) {
             typing_mode = false;
-            lv_obj_remove_flag(peripheral_obj_handle, LV_OBJ_FLAG_HIDDEN);
-            lv_obj_remove_flag(battery_obj_handle, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_remove_flag(status_label, LV_OBJ_FLAG_HIDDEN);
         }
     }
     
@@ -109,39 +108,26 @@ static void screen_timer_cb(lv_timer_t *timer) {
     lv_obj_invalidate(cat_img);
 }
 
-static struct zmk_widget_battery_status battery_widget;
-static struct zmk_widget_peripheral_status peripheral_widget;
-
-#if !defined(CONFIG_ZMK_SPLIT_PERIPHERAL)
-static struct zmk_widget_wpm_status wpm_widget;
-#endif
-
 lv_obj_t *zmk_display_status_screen(void) {
     lv_obj_t *screen = lv_obj_create(NULL);
 
-    /* Built-in connection status widget */
-    zmk_widget_peripheral_status_init(&peripheral_widget, screen);
-    peripheral_obj_handle = zmk_widget_peripheral_status_obj(&peripheral_widget);
-    lv_obj_align(peripheral_obj_handle, LV_ALIGN_TOP_LEFT, 0, 0);
+    /* Pure LVGL status placeholder text layout */
+    status_label = lv_label_create(screen);
+    lv_label_set_text(status_label, "SYSTEM ACTIVE");
+    lv_obj_align(status_label, LV_ALIGN_TOP_LEFT, 0, 0);
 
-    /* Built-in battery status widget */
-    zmk_widget_battery_status_init(&battery_widget, screen);
-    battery_obj_handle = zmk_widget_battery_status_obj(&battery_widget);
-    lv_obj_align(battery_obj_handle, LV_ALIGN_TOP_RIGHT, 0, 0);
+    /* Pure LVGL tracking label block */
+    wpm_label = lv_label_create(screen);
+    lv_label_set_text(wpm_label, "WPM: 0");
+    lv_obj_align(wpm_label, LV_ALIGN_BOTTOM_LEFT, 0, 0);
 
-    /* Built-in typing calculation readout text */
-#if !defined(CONFIG_ZMK_SPLIT_PERIPHERAL)
-    zmk_widget_wpm_status_init(&wpm_widget, screen);
-    lv_obj_align(zmk_widget_wpm_status_obj(&wpm_widget), LV_ALIGN_BOTTOM_LEFT, 0, 0);
-#endif
-
-    /* Custom Bongo Cat graphic block */
+    /* Custom Bongo Cat graphics asset wrapper */
     cat_img = lv_image_create(screen);
     cat_dsc.data = cat_neutral;
     lv_image_set_src(cat_img, &cat_dsc);
     lv_obj_align(cat_img, LV_ALIGN_BOTTOM_RIGHT, 0, 0);
 
-    /* Start execution clock loop */
+    /* Boot layout timer */
     lv_timer_create(screen_timer_cb, ANIMATION_TIMER_MS, NULL);
 
     return screen;
