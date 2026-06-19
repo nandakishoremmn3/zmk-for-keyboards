@@ -143,32 +143,36 @@
             >;
         };
 
-        BASE_MACOS {
+        base_layer_macos {
             bindings = <
-&trans  &trans  &trans  &trans        &trans        &trans  &trans  &trans         &trans         &trans  &trans  &trans
-&trans  &trans  &trans  &kp LEFT_ALT  &kp LEFT_GUI  &trans  &trans  &kp RIGHT_GUI  &kp RIGHT_ALT  &trans  &trans  &trans
-&trans  &trans  &trans  &trans        &trans        &to 0   &trans  &trans         &trans         &trans  &trans  &trans
-                        &lt 3 ESCAPE  &trans        &trans  &trans  &trans         &trans
+&trans  &trans  &trans  &trans          &trans          &trans  &trans  &trans           &trans           &trans  &trans  &trans
+&trans  &trans  &trans  &mt LEFT_ALT E  &mt LEFT_GUI A  &trans  &trans  &mt RIGHT_GUI H  &mt RIGHT_ALT T  &trans  &trans  &trans
+&trans  &trans  &trans  &trans          &trans          &to 0   &trans  &trans           &trans           &trans  &trans  &trans
+                        &lt 3 ESCAPE    &trans          &trans  &trans  &trans           &trans
             >;
+
+            label = "BASE_MACOS";
         };
 
         nav_layer {
             display-name = "NAV";
             bindings = <
-&none  &kp LG(LC(LEFT))  &kp LC(LEFT)  &kp UP    &kp LC(RIGHT)  &kp LG(LC(RIGHT))  &kp LC(LGUI)    &kp LCTRL       &mmv MOVE_UP    &msc SCRL_RIGHT  &none  &none
+&none  &kp LG(LC(LEFT))  &kp LC(LEFT)  &kp UP    &kp LC(RIGHT)  &kp LG(LC(RIGHT))  &msc SCRL_UP    &mmv MOVE_LEFT  &mmv MOVE_UP    &msc SCRL_RIGHT  &none  &none
 &none  &mkp MB4          &kp LEFT      &kp DOWN  &kp RIGHT      &mkp MB5           &msc SCRL_DOWN  &mmv MOVE_LEFT  &mmv MOVE_DOWN  &mmv MOVE_RIGHT  &none  &none
 &none  &none             &kp HOME      &none     &kp END        &none              &none           &none           &none           &none            &none  &none
                                        &none     &none          &none              &mkp RCLK       &mkp MCLK       &mkp LCLK
             >;
         };
 
-        NAV_MACOS {
+        nav_layer_macos {
             bindings = <
 &trans  &kp LC(LEFT)  &kp LA(LEFT)  &trans  &kp LA(RIGHT)  &kp LC(RIGHT)  &trans  &trans  &trans  &trans  &trans  &trans
 &trans  &trans        &trans        &trans  &trans         &trans         &trans  &trans  &trans  &trans  &trans  &trans
 &trans  &trans        &trans        &trans  &trans         &trans         &trans  &trans  &trans  &trans  &trans  &trans
                                     &trans  &trans         &trans         &trans  &trans  &trans
             >;
+
+            label = "NAV_MACOS";
         };
 
         num_layer {
@@ -191,13 +195,15 @@
             >;
         };
 
-        SYS_LAYER {
+        sys_layer {
             bindings = <
 &trans  &trans  &trans  &trans  &trans  &trans  &bt BT_SEL 0   &bt BT_SEL 1   &bt BT_SEL 2   &bt BT_SEL 3    &bt BT_SEL 4   &trans
 &trans  &trans  &trans  &trans  &trans  &trans  &bt BT_DISC 0  &bt BT_DISC 1  &bt BT_DISC 2  &bt BT_DISC 3   &bt BT_DISC 4  &trans
 &trans  &trans  &trans  &trans  &trans  &trans  &none          &out OUT_TOG   &bt BT_CLR     &bt BT_CLR_ALL  &trans         &trans
                         &trans  &trans  &trans  &trans         &trans         &trans
             >;
+
+            label = "SYS";
         };
     };
 };
