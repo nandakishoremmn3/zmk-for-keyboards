@@ -61,12 +61,20 @@ static int64_t last_typing_time = 0;
 static lv_obj_t *peripheral_obj_handle;
 static lv_obj_t *battery_obj_handle;
 
-/* Fixed bit-shift pseudo-random engine */
-static uint16_t anim_rand(void) {
-    static uint16_t seed = 42;
-    seed ^= seed << 7;
-    seed ^= seed >> 9;
-    seed ^= seed  0) {
+/* Clock execution loop routing logic based on side identity */
+static void screen_timer_cb(lv_timer_t *timer) {
+    uint32_t current_wpm = 0;
+    int64_t now = k_uptime_get();
+
+#if !defined(CONFIG_ZMK_SPLIT_PERIPHERAL)
+    // Left/Central Half: Query live system typing speeds
+    current_wpm = zmk_wpm_get_wpm();
+#else
+    // Right/Peripheral Half: Default to continuous slow tapping for visual styling
+    current_wpm = 10; 
+#endif
+    
+    if (current_wpm > 0) {
         last_typing_time = now;
         
         // Focus Mode Activation: Hide system items instantly upon typing
@@ -76,9 +84,13 @@ static uint16_t anim_rand(void) {
             lv_obj_add_flag(battery_obj_handle, LV_OBJ_FLAG_HIDDEN);
         }
 
+        // Alternates left and right paws sequentially without random calculations
         if (cat_state == 0) {
-            cat_state = (anim_rand() % 2) + 1;
-            cat_dsc.data = (cat_state == 1) ? cat_left_paw : cat_right_paw;
+            cat_state = 1;
+            cat_dsc.data = cat_left_paw;
+        } else if (cat_state == 1) {
+            cat_state = 2;
+            cat_dsc.data = cat_right_paw;
         } else {
             cat_state = 0;
             cat_dsc.data = cat_neutral;
