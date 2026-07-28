@@ -166,6 +166,7 @@
   (c v)     C-S-z 30 first-release ()
   (i o)     bspc  30 first-release ()
   (o p)     del   30 first-release ()
+  (m ,)     C-b   30 first-release ()  ;; tmux/herdr multiplexer prefix
 
   ;; hold Left Ctrl + Right Ctrl together to bail out to the no-op
   ;; passthrough config (noop.kbd) without exiting kanata
