@@ -1,0 +1,33 @@
+;; No-op fallback config for kanata — pure passthrough, zero remapping.
+;; Loaded as the 2nd config file alongside redragon_k616.kbd so you can
+;; switch to it live (no exiting/restarting kanata) if the main config
+;; misbehaves.
+;;
+;; Switch here:        hold Left Ctrl + Right Ctrl together (from the main config)
+;; Switch back to main: hold Left Ctrl + Right Ctrl together (from here)
+
+(defcfg
+  process-unmapped-keys no
+  concurrent-tap-hold yes
+  windows-altgr cancel-lctl-press
+)
+
+(defsrc
+  grv  1    2    3    4    5    6    7    8    9    0    -    =    bspc
+  tab  q    w    e    r    t    y    u    i    o    p    [    ]    \
+  caps a    s    d    f    g    h    j    k    l    ;    '    ret
+  lsft z    x    c    v    b    n    m    ,    .    /    rsft
+  lctl lmet lalt           spc            ralt rctl
+)
+
+(deflayer passthrough
+  grv  1    2    3    4    5    6    7    8    9    0    -    =    bspc
+  tab  q    w    e    r    t    y    u    i    o    p    [    ]    \
+  caps a    s    d    f    g    h    j    k    l    ;    '    ret
+  lsft z    x    c    v    b    n    m    ,    .    /    rsft
+  lctl lmet lalt           spc            ralt rctl
+)
+
+(defchordsv2
+  (lctl rctl) (lrld-num 1) 500 all-released ()
+)

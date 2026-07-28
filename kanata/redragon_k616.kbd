@@ -1,0 +1,173 @@
+;; kanata config for Redragon K616 Fizz Pro (60% ANSI)
+;; Translated from config/corne.keymap (ZMK, Miryoku-style Corne layout).
+;; macOS layers and the SYS (BT/bootloader) layer are intentionally dropped.
+;;
+;; Row layout used throughout defsrc/deflayer (5 rows, 59 keys total):
+;;   R0 numrow(14): grv 1-0 - = bspc
+;;   R1 tabrow(14): tab q w e r t y u i o p [ ] \
+;;   R2 homerow(13): caps a s d f g h j k l ; ' ret
+;;   R3 botrow(12): lsft z x c v b n m , . / rsft
+;;   R4 modrow(6): lctl lmet lalt spc ralt rctl
+;; Corne's row0/row1/row2 map onto R1/R2/R3 respectively (R0 and most of
+;; R4 have no Corne equivalent and stay transparent).
+
+(defcfg
+  process-unmapped-keys no
+  concurrent-tap-hold yes
+  ;; Windows silently synthesizes an lctl press alongside every ralt press
+  ;; (AltGr emulation). That phantom lctl was being forwarded live for the
+  ;; whole hold (corrupting every SYM-layer key into Ctrl+key) and then
+  ;; left stuck after release. This cancels the phantom press at the source.
+  windows-altgr cancel-lctl-press
+  ;; Matches the ZMK source's require-prior-idle-ms 150 on its combos: skip
+  ;; chord processing entirely (fall through to normal typing) unless there
+  ;; was 150ms of no other key activity right before the chord's first key.
+  ;; Without this, fast mid-sentence typing that happens to hit a chord's
+  ;; keys (e.g. h-then-a landing on the caps-word chord's f+j) misfires,
+  ;; since chords are evaluated before tap-hold/layer resolution.
+  chords-v2-min-idle 150
+)
+
+(defsrc
+  grv  1    2    3    4    5    6    7    8    9    0    -    =    bspc
+  tab  q    w    e    r    t    y    u    i    o    p    [    ]    \
+  caps a    s    d    f    g    h    j    k    l    ;    '    ret
+  lsft z    x    c    v    b    n    m    ,    .    /    rsft
+  lctl lmet lalt           spc            ralt rctl
+)
+
+(defvar
+  ;; tap-keys lists for the hand-aware home-row mods below. An interrupting
+  ;; key in the list resolves the pending mod as an early tap; one that
+  ;; isn't falls through to tap-hold-release-keys' default of an early hold.
+  ;;
+  ;; Limited to this mod's own hand's letters plus space/comma/period.
+  ;; Deliberately does NOT include the *other* hand's home-row-mod
+  ;; positions (a s d f / j k l ;) — that was previously included to stop
+  ;; fast mod-vs-mod rolls like t-then-a from misfiring as a modifier, but
+  ;; it also broke every Shift+opposite-hand-mod-letter chord (Shift+H,
+  ;; Shift+T, Shift+C, Shift+A, ...), since those are the exact same key
+  ;; sequence kanata can't tell apart by timing alone. Traded the fast-roll
+  ;; protection away in favor of those chords working. Structural/functional
+  ;; keys — Tab, Backspace, Enter, the number row, other modifiers — stay
+  ;; excluded so they still always resolve an early hold (Alt+Tab etc.).
+  left-mod-tap-keys (
+    q w e r t
+    a s d f g
+    lsft z x c v b
+  )
+  right-mod-tap-keys (
+    y u i o p
+    h j k l ; '
+    n m , . /
+  )
+)
+
+(defalias
+  ;; mirrored GACS home-row mods (ZMK: tap-preferred, 200ms/175ms)
+  mtc (tap-hold-release-keys 200 200 c lsft $left-mod-tap-keys)
+  mti (tap-hold-release-keys 200 200 i lctl $left-mod-tap-keys)
+  mte (tap-hold-release-keys 200 200 e lmet $left-mod-tap-keys)
+  mta (tap-hold-release-keys 200 200 a lalt $left-mod-tap-keys)
+  mth (tap-hold-release-keys 200 200 h ralt $right-mod-tap-keys)
+  mtt (tap-hold-release-keys 200 200 t rmet $right-mod-tap-keys)
+  mts (tap-hold-release-keys 200 200 s rctl $right-mod-tap-keys)
+  mtn (tap-hold-release-keys 200 200 n rsft $right-mod-tap-keys)
+
+  ;; layer-hold keys. Pure tap-hold (no `multi` with the real modifier) so
+  ;; holding for a layer never also sends a real Alt/Ctrl chord underneath
+  ;; the layer's remapped keys (that was corrupting e.g. NUM digits into
+  ;; Alt+digit). Tapping still sends the plain modifier once.
+  navk (tap-hold-release 200 200 esc (layer-while-held nav))
+  numk (tap-hold 200 200 spc (layer-while-held num))
+  symk (tap-hold 200 200 ralt (layer-while-held sym))
+
+  cw (caps-word 2000)
+
+  ;; mouse move / scroll (nav layer)
+  msu (movemouse-up 5 15)
+  msd (movemouse-down 5 15)
+  msl (movemouse-left 5 15)
+  msr (movemouse-right 5 15)
+  mwu (mwheel-up 25 15)
+  mwd (mwheel-down 25 15)
+  mwl (mwheel-left 25 15)
+  mwr (mwheel-right 25 15)
+)
+
+(deflayer base
+  ;; R0 numrow
+  grv  1    2    3    4    5    6    7    8    9    0    -    =    bspc
+  ;; R1 tabrow  (Corne row0: Tab B Y O U ' " L D W V Z)
+  tab  b    y    o    u    '    S-'  l    d    w    v    z    ]    \
+  ;; R2 homerow (Corne row1: none C I E A , . H T S N Q)
+  bspc @mtc @mti @mte @mta ,    .    @mth @mtt @mts @mtn q    ret
+  ;; R3 botrow  (Corne row2, left half shifts onto lsft; right half aligns
+  ;; directly since it's a full 6-of-6, no shift: none G X J K to1 | ; R M F P mo6)
+  g    x    j    k    v    b    ;    r    m    f    p    rsft
+  ;; R4 modrow: Left Alt = tap Esc / hold NAV; Space = tap space / hold NUM;
+  ;; Right Alt = hold SYM; Left GUI stays a plain Windows key
+  lctl lmet @navk @numk @symk rctl
+)
+
+(deflayer nav
+  ;; R0 numrow - transparent
+  _    _    _    _    _    _    _    _    _    _    _    _    _    _
+  ;; R1 tabrow (Corne nav row0)
+  XX   M-C-left C-left up   C-right M-C-right @mwu @mwl @msu @mwr XX   XX   XX   XX
+  ;; R2 homerow (Corne nav row1)
+  lsft mbck left down  right mfwd  @mwd @msl @msd @msr XX   XX   _
+  ;; R3 botrow (Corne nav row2)
+  XX   home XX   end  XX   XX   XX   XX   XX   XX   XX   XX
+  ;; R4 modrow: space = left click, right alt = right click, while NAV held
+  _    _    XX             mltp           mrtp  _
+)
+
+(deflayer num
+  ;; R0 numrow - transparent (physical number row already sends digits)
+  _    _    _    _    _    _    _    _    _    _    _    _    _    _
+  ;; R1 tabrow (Corne num row0)
+  XX   volu 9    8    7    XX   XX   f1   f2   f3   f4   XX   XX   XX
+  ;; R2 homerow (Corne num row1)
+  XX   mute 3    2    1    0    XX   f5   f6   f7   f8   XX   _
+  ;; R3 botrow (Corne num row2)
+  voldwn 6  5    4    XX   XX   XX   f9   f10  f11  f12  XX
+  ;; R4 modrow: spc is now NUM's own trigger (self, blocked); lalt/ralt left
+  ;; transparent so holding NAV/SYM at the same time still stacks normally
+  _    _    _              XX             _    _
+)
+
+(deflayer sym
+  ;; R0 numrow - transparent
+  _    _    _    _    _    _    _    _    _    _    _    _    _    _
+  ;; R1 tabrow (Corne sym row0)
+  XX   grv  S-,  S-.  S-2  S-/  S-7  S--  [    ]    S-5  XX   XX   XX
+  ;; R2 homerow (Corne sym row1)
+  XX   S-1  -    S-=  =    S-3  S-\  S-;  S-9  S-0  XX   XX   _
+  ;; R3 botrow (Corne sym row2)
+  S-6  /    S-8  \    S-6  XX   S-`  S-4  S-[  S-]  XX   XX
+  ;; R4 modrow: ralt is SYM's own trigger (self, blocked); lalt/spc left
+  ;; transparent so holding NAV/NUM at the same time still stacks normally
+  _    _    _              _              XX    _
+)
+
+(defchordsv2
+  ;; 30ms matches the ZMK source's timeout-ms 30 on these combos — tight
+  ;; enough to only catch genuinely simultaneous chord presses, not fast
+  ;; sequential typing (200ms was easily catching normal fast typing,
+  ;; e.g. "ha" at the start of "happy" landing on the f+j caps-word combo).
+  ;; Moved off F+J to G+H since F and J are themselves home-row-mod keys.
+  (g h)     @cw  30 all-released ()
+  (z x)     C-c  30 first-release ()
+  (x c)     C-v  30 first-release ()
+  (z c)     C-x  30 first-release ()
+  (z x c)   M-v  30 first-release ()
+  (lsft z)  C-z  30 first-release ()
+  (c v)     C-S-z 30 first-release ()
+  (i o)     bspc  30 first-release ()
+  (o p)     del   30 first-release ()
+
+  ;; hold Left Ctrl + Right Ctrl together to bail out to the no-op
+  ;; passthrough config (noop.kbd) without exiting kanata
+  (lctl rctl) (lrld-num 2) 500 all-released ()
+)
