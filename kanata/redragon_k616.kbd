@@ -26,6 +26,8 @@
   ;; keys (e.g. h-then-a landing on the caps-word chord's f+j) misfires,
   ;; since chords are evaluated before tap-hold/layer resolution.
   chords-v2-min-idle 150
+  movemouse-inherit-accel-state yes
+  movemouse-smooth-diagonals yes
 )
 
 (defsrc
@@ -63,16 +65,18 @@
   )
 )
 
-(defalias
-  ;; mirrored GACS home-row mods (ZMK: tap-preferred, 200ms/175ms)
+ (defalias
+  ;; home-row mods — GACS without GUI (GUI moved to B, see mtb)
   mtc (tap-hold-release-keys 200 200 c lsft $left-mod-tap-keys)
   mti (tap-hold-release-keys 200 200 i lctl $left-mod-tap-keys)
-  mte (tap-hold-release-keys 200 200 e lmet $left-mod-tap-keys)
+  ;; mte removed — GUI no longer on home row (was e/lmet)
   mta (tap-hold-release-keys 200 200 a lalt $left-mod-tap-keys)
   mth (tap-hold-release-keys 200 200 h ralt $right-mod-tap-keys)
-  mtt (tap-hold-release-keys 200 200 t rmet $right-mod-tap-keys)
+  ;; mtt removed — GUI no longer on home row (was t/rmet)
   mts (tap-hold-release-keys 200 200 s rctl $right-mod-tap-keys)
   mtn (tap-hold-release-keys 200 200 n rsft $right-mod-tap-keys)
+  ;; GUI on B — pure GUI (no tap b), mirrors Corne pos29 LGUI
+  ;; mtb left for reference but not used: b is now pure lmet
 
   ;; layer-hold keys. Pure tap-hold (no `multi` with the real modifier) so
   ;; holding for a layer never also sends a real Alt/Ctrl chord underneath
@@ -80,15 +84,16 @@
   ;; Alt+digit). Tapping still sends the plain modifier once.
   navk (tap-hold-release 200 200 esc (layer-while-held nav))
   numk (tap-hold 200 200 spc (layer-while-held num))
-  symk (tap-hold 200 200 ralt (layer-while-held sym))
+  symk (tap-hold 200 200 bspc (layer-while-held sym))
 
   cw (caps-word 2000)
 
-  ;; mouse move / scroll (nav layer)
-  msu (movemouse-up 5 15)
-  msd (movemouse-down 5 15)
-  msl (movemouse-left 5 15)
-  msr (movemouse-right 5 15)
+  ;; mouse move / scroll (nav layer) - low initial speed + linear accel
+  ;; params: interval accel-time min max -> 16ms tick, 700ms ramp, 1px -> 12px
+  msu (movemouse-accel-up 16 700 1 12)
+  msd (movemouse-accel-down 16 700 1 12)
+  msl (movemouse-accel-left 16 700 1 12)
+  msr (movemouse-accel-right 16 700 1 12)
   mwu (mwheel-up 25 15)
   mwd (mwheel-down 25 15)
   mwl (mwheel-left 25 15)
@@ -100,13 +105,13 @@
   grv  1    2    3    4    5    6    7    8    9    0    -    =    bspc
   ;; R1 tabrow  (Corne row0: Tab B Y O U ' " L D W V Z)
   tab  b    y    o    u    '    S-'  l    d    w    v    z    ]    \
-  ;; R2 homerow (Corne row1: none C I E A , . H T S N Q)
-  bspc @mtc @mti @mte @mta ,    .    @mth @mtt @mts @mtn q    ret
+   ;; R2 homerow (Corne row1: none C I E A , . H T S N Q) — GUI removed from E/T, moved to B
+  bspc @mtc @mti e @mta ,    .    @mth t @mts @mtn q    ret
   ;; R3 botrow  (Corne row2, left half shifts onto lsft; right half aligns
-  ;; directly since it's a full 6-of-6, no shift: none G X J K to1 | ; R M F P mo6)
-  g    x    j    k    v    b    ;    r    m    f    p    rsft
+  ;; directly since it's a full 6-of-6, no shift: none G X J K GUI | ; R M F P mo6)
+  g    x    j    k    v    lmet    ;    r    m    f    p    rsft
   ;; R4 modrow: Left Alt = tap Esc / hold NAV; Space = tap space / hold NUM;
-  ;; Right Alt = hold SYM; Left GUI stays a plain Windows key
+  ;; Right Alt = tap BSPC / hold SYM; Left GUI stays a plain Windows key
   lctl lmet @navk @numk @symk rctl
 )
 
@@ -161,12 +166,12 @@
   (z x)     C-c  30 first-release ()
   (x c)     C-v  30 first-release ()
   (z c)     C-x  30 first-release ()
-  (z x c)   M-v  30 first-release ()
-  (lsft z)  C-z  30 first-release ()
-  (c v)     C-S-z 30 first-release ()
-  (i o)     bspc  30 first-release ()
-  (o p)     del   30 first-release ()
-  (m ,)     C-b   30 first-release ()  ;; tmux/herdr multiplexer prefix
+  (z x c)   C-S-z  30 first-release ()  ;; redo — moved here per final review (was M-v Win+V)
+  (lsft z)  C-z  30 first-release ()  ;; Shift+z → undo
+  (c v)     M-v 30 first-release ()  ;; cv → Win+V (clipboard history) — was redo
+  (i o)     C-bspc  30 first-release ()
+  (o p)     C-del   30 first-release ()  ;; word-delete forward (was plain del)
+  (m ,)     C-b   30 first-release ()  ;; tmux/herdr multiplexer prefix — m, → Ctrl+B
 
   ;; hold Left Ctrl + Right Ctrl together to bail out to the no-op
   ;; passthrough config (noop.kbd) without exiting kanata

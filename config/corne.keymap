@@ -61,11 +61,32 @@
             require-prior-idle-ms = <150>;
         };
 
+        combo_backspace {
+            bindings = <&kp LC(BSPC)>;     // word-delete backward — mirrors kanata I+O → C-bspc
+            key-positions = <8 9>;          // physical I + O (top row)
+            timeout-ms = <30>;
+            require-prior-idle-ms = <150>;
+        };
+
+        combo_delete {
+            bindings = <&kp LC(DEL)>;      // word-delete forward — mirrors kanata O+P → C-del
+            key-positions = <9 10>;         // physical O + P (top row)
+            timeout-ms = <30>;
+            require-prior-idle-ms = <150>;
+        };
+
+        combo_tmux_prefix {
+            bindings = <&kp LC(B)>;
+            key-positions = <31 32>;        // physical M + , (bottom row)
+            timeout-ms = <30>;
+            require-prior-idle-ms = <150>;
+        };
+
         // -- Tier 2: High Value --
 
         combo_copy_mac {
             bindings = <&kp LG(C)>;
-            key-positions = <26 27>;        // X + C
+            key-positions = <26 27>;        // X + J (bottom row, left cluster)
             timeout-ms = <30>;
             require-prior-idle-ms = <150>;
             layers = <1>;
@@ -73,7 +94,7 @@
 
         combo_paste_macos {
             bindings = <&kp LG(V)>;
-            key-positions = <27 28>;        // C + V
+            key-positions = <27 28>;        // J + K (bottom row, middle cluster) — kanata xc → paste
             timeout-ms = <30>;
             require-prior-idle-ms = <150>;
             layers = <1>;
@@ -81,7 +102,7 @@
 
         combo_cut_macos {
             bindings = <&kp LG(X)>;
-            key-positions = <26 28>;        // X + V (skip middle)
+            key-positions = <26 28>;        // X + K (skip J)
             timeout-ms = <30>;
             require-prior-idle-ms = <150>;
             layers = <1>;
@@ -90,32 +111,32 @@
         // -- Tier 3: Vertical Symbol Combos --
 
         combo_copy_win {
-            bindings = <&kp LC(C)>;
-            key-positions = <26 27>;
+            bindings = <&kp LC(C)>;        // zx → copy — mirrors kanata (z x) → C-c
+            key-positions = <26 27>;        // X + J
             timeout-ms = <30>;
             require-prior-idle-ms = <150>;
             layers = <0>;
         };
 
         combo_paste_win {
-            bindings = <&kp LC(V)>;
-            key-positions = <27 28>;
+            bindings = <&kp LC(V)>;        // xc → paste — mirrors kanata (x c) → C-v
+            key-positions = <27 28>;        // J + K
             timeout-ms = <30>;
             require-prior-idle-ms = <150>;
             layers = <0>;
         };
 
         combo_cut_win {
-            bindings = <&kp LC(X)>;
-            key-positions = <26 28>;
+            bindings = <&kp LC(X)>;        // zc → cut (skip middle)
+            key-positions = <26 28>;        // X + K
             timeout-ms = <30>;
             require-prior-idle-ms = <150>;
             layers = <0>;
         };
 
         paste_list_win {
-            bindings = <&kp LG(V)>;
-            key-positions = <26 27 28>;
+            bindings = <&kp LG(V)>;        // Win+V clipboard history — kanata c+v → M-v (2-key); ZMK needs 3-key (matrix constraint)
+            key-positions = <26 27 28>;     // X + J + K
             layers = <0>;
             timeout-ms = <30>;
             require-prior-idle-ms = <150>;
@@ -130,35 +151,21 @@
         };
 
         undo_win {
-            bindings = <&kp LC(Z)>;
-            key-positions = <25 26>;
+            bindings = <&kp LC(Z)>;        // Shift+z → undo — kanata (lsft z) → C-z; Corne uses G+X (no dedicated Shift key)
+            key-positions = <25 26>;        // G + X
             timeout-ms = <30>;
             require-prior-idle-ms = <150>;
             layers = <0>;
         };
 
-        redo_win {
-            bindings = <&kp LC(LS(Z))>;
-            key-positions = <28 29>;
-            timeout-ms = <30>;
-            require-prior-idle-ms = <150>;
-            layers = <0>;
-        };
+        // redo removed — was 28 29 (K+to1) → LC(LS(Z)); kanata dropped redo (c v was redo, now Win+V per request)
 
         undo_macos {
             bindings = <&kp LG(Z)>;
             key-positions = <25 26>;
             timeout-ms = <30>;
             require-prior-idle-ms = <150>;
-            layers = <0>;
-        };
-
-        redo_macos {
-            bindings = <&kp LS(LG(Z))>;
-            key-positions = <28 29>;
-            timeout-ms = <30>;
-            require-prior-idle-ms = <150>;
-            layers = <0>;
+            layers = <1>;
         };
     };
 
@@ -169,8 +176,8 @@
             display-name = "BASE";
             bindings = <
 &kp TAB  &kp B             &kp Y               &kp O           &kp U           &kp SQT    &kp DOUBLE_QUOTES  &kp L            &kp D            &kp W                &kp V              &kp Z
-&none    &mt LEFT_SHIFT C  &mt LEFT_CONTROL I  &mt LEFT_GUI E  &mt LEFT_ALT A  &kp COMMA  &kp PERIOD         &mt RIGHT_ALT H  &mt RIGHT_GUI T  &mt RIGHT_CONTROL S  &mt RIGHT_SHIFT N  &kp Q
-&none    &kp G             &kp X               &kp J           &kp K           &to 1      &kp SEMICOLON      &kp R            &kp M            &kp F                &kp P              &mo 6
+&none    &mt LEFT_SHIFT C  &mt LEFT_CONTROL I  &kp E           &mt LEFT_ALT A  &kp COMMA  &kp PERIOD         &mt RIGHT_ALT H  &kp T            &mt RIGHT_CONTROL S  &mt RIGHT_SHIFT N  &kp Q
+&none    &kp G             &kp X               &kp J           &kp K           &kp LGUI       &kp SEMICOLON      &kp R            &kp M            &kp F                &kp P              &mo 6
                                                &lt 2 ESC       &mo 4           &kp SPACE  &kp ENTER          &mo 5            &kp BSPC
             >;
         };
@@ -178,7 +185,7 @@
         base_layer_macos {
             bindings = <
 &trans  &trans  &trans  &trans          &trans          &trans  &trans  &trans           &trans           &trans  &trans  &trans
-&trans  &trans  &trans  &mt LEFT_ALT E  &mt LEFT_GUI A  &trans  &trans  &mt RIGHT_GUI H  &mt RIGHT_ALT T  &trans  &trans  &trans
+&trans  &trans  &trans  &trans          &trans          &trans  &trans  &trans           &trans           &trans  &trans  &trans
 &trans  &trans  &trans  &trans          &trans          &to 0   &trans  &trans           &trans           &trans  &trans  &trans
                         &lt 3 ESCAPE    &trans          &trans  &trans  &trans           &trans
             >;
