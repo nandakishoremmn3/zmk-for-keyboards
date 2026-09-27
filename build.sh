@@ -67,10 +67,35 @@ echo ""
 echo "🚚 Exporting firmware to Windows Desktop..."
 echo "----------------------------------------------------"
 
+# Clear the clipboard first — a prior run's "copy corne_left.uf2 to clipboard" step
+# (below) leaves an open handle on that file that blocks overwriting it from WSL.
+powershell.exe -NoProfile -Command "Set-Clipboard -Value \$null" >/dev/null 2>&1 || true
+
 # Create the folder if it doesn't exist, then copy the files over
 mkdir -p "${WINDOWS_DESKTOP}"
 cp "${WORKDIR}"/corne_left.uf2 "${WINDOWS_DESKTOP}/corne_left.uf2"
 cp "${WORKDIR}"/corne_right.uf2 "${WINDOWS_DESKTOP}/corne_right.uf2"
+
+# ----------------------------------------------------------------
+# 4. RE-RENDER KEYMAP SVG
+# ----------------------------------------------------------------
+echo ""
+echo "🖼️  Re-rendering keymap SVG..."
+echo "----------------------------------------------------"
+
+export PATH="$PATH:${HOME}/.local/bin"
+keymap parse -z "${WORKDIR}/config/corne.keymap" > /tmp/corne_keymap.yaml
+keymap draw /tmp/corne_keymap.yaml > "${WORKDIR}/corne_keymap.svg"
+
+# ----------------------------------------------------------------
+# 5. COPY LEFT HALF FIRMWARE TO WINDOWS CLIPBOARD
+# ----------------------------------------------------------------
+echo ""
+echo "📋 Copying corne_left.uf2 to clipboard..."
+echo "----------------------------------------------------"
+
+LEFT_WIN_PATH="$(wslpath -w "${WINDOWS_DESKTOP}/corne_left.uf2")"
+powershell.exe -NoProfile -Command "Set-Clipboard -Path '${LEFT_WIN_PATH}'"
 
 # ----------------------------------------------------------------
 # SUMMARY OUTPUT

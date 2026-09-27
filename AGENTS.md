@@ -38,7 +38,7 @@ Context for AI agents working on `nandakishoremmn3/zmk-for-keyboards` (branch `n
 | **Caps Word** | `g+h (30 ms, all-released)` | `f+j (pos 16 19)` | `F`/`J` are home-row mods on kanata → fast rolls `f→j`/`t→a` misfired; moved to `G+H`. ZMK keeps `F+J` (index fingers, no mod conflict on that firmware). |
 | **Win+V** | 2-key `c+v → M-v` (Gui+V) | 3-key `26 27 28 → LG(V)` | Corne matrix has no free 2-key adjacent pair for `c+v` without colliding with `paste (27 28)`; 3-key `X+J+K` is the only spare chord. Kanata prefers 2-key for speed. |
 | **Redo** | `z+x+c → C-S-z` | Removed (`was 28 29 K+to1`) | Kanata can afford 3-key redo; ZMK dropped it to avoid stealing `Win+V` 3-key. Re-add at `28 29` if redo is needed on Corne. |
-| **GUI** | `lmet` on physical `b` | `LGUI` on pos `29` (was `to 1`) | Same logical key, moved off home row to stop accidental triggers; different matrix positions. Both pure, no tap. |
+| **GUI** | `lmet` on physical `b` (pure, no tap) | Removed from Windows `BASE`; pos `29` is now `&to 1` (toggle to `BASE_MACOS`). GUI/Cmd only exists as a home-row hold-tap on the macOS layer (`E`/`A`/`H`/`T`, see 2026-09-28 note above). | Kanata is Windows-only and keeps a dedicated GUI key since Windows rarely needs Cmd; ZMK's Corne switches wholesale to a mac-flavored home row instead of keeping a standalone GUI tap. |
 | **MacOS layer** | Dropped entirely | `BASE_MACOS` (layer 1) with `LG(C/V/X/Z)` | Kanata is Windows-only; ZMK keeps Mac swaps for Bluetooth hosts. |
 | **Thumb/layers** | `lctl lmet @navk @numk @symk rctl` — `ralt` is `BSPC` hold `SYM` | `LT2 ESC / MO4 / SPACE / ENTER / MO5 / BSPC` — thumb holds for `NUM/SYM/MOUSE/FUN` | Corne has 6 thumbs for layers; kanata has 6 mod-row keys and reuses `spc`/`bspc`/`esc` holds. |
 | **Mouse** | `movemouse-accel-* (16 700 1 12)` + `mwheel-*` on NAV | `msc SCRL_*` + `mmv MOVE_*` + `mkp MB*` | Different stacks (kanata movemouse vs ZMK pointing). Tuning kept low initial + linear accel to avoid drift. |
@@ -50,14 +50,40 @@ backporting to the other.
 
 ### Combo backport status (kanata → ZMK)
 
-- I+O → Backspace (word) — done (`combo_backspace`, key-positions `<8 9>` → `LC(BSPC)`)
-- O+P → Forward Delete (word) — done (`combo_delete`, key-positions `<9 10>` → `LC(DEL)`)
+- I+O → Backspace (word) — done (`combo_backspace`, key-positions `<8 9>` → `LC(BSPC)`,
+  layer `<0>` only; macOS variant `combo_backspace_macos` → `LA(BSPC)`, layer `<1>` —
+  Ctrl+Backspace doesn't word-delete on macOS; Option+Backspace is the correct mac
+  equivalent (Cmd+Backspace was tried first and is wrong — it deletes to start of line,
+  not word-delete). ZMK-only, kanata has no macOS layer to mirror this into.)
+- O+P → Forward Delete (word) — done (`combo_delete`, key-positions `<9 10>` → `LC(DEL)`,
+  layer `<0>` only; macOS variant `combo_delete_macos` → `LA(DEL)`, layer `<1>`, same
+  reasoning as backspace above.)
 - M+, → Ctrl+B (tmux prefix) — done (`combo_tmux_prefix`, key-positions `<31 32>`)
 - `c+v` → Win+V, `z+x+c` → Redo, `z+x`/`x+c` clipboard — done (kanata 2-key/3-key, ZMK 3-key `paste_list_win`; redo currently kanata-only)
 - G+H → Caps Word — intentionally NOT mirrored; kanata moved it off F+J because F/J are
   home-row-mod keys there and collided with fast typing. ZMK keeps caps-word on F+J
   (`combo_caps_word`).
 - GUI removal `E`/`T` → plain, GUI → `B`/`pos29` — done (both files, 2026-09-02)
+- **ZMK-only, 2026-09-28:** pos `29` (bottom-right of left half, previously pure `&kp LGUI`)
+  changed to `&to 1` — toggles to `base_layer_macos` (layer 1), pairing with the existing
+  `&to 0` at the same physical position inside `base_layer_macos` (return to `BASE`). This
+  removes the standalone `LGUI` tap from the Windows base layer entirely; GUI/Cmd is now
+  only reachable via the macOS layer's home row (see below). `base_layer_macos` home row
+  (pos `15/16/19/20`) changed from `&trans` to explicit hold-taps so the macOS layer gets
+  a full GACS home row: left `13/14/15/16` = Shift/Ctrl/Option/Cmd (`mt LEFT_SHIFT C`,
+  `mt LEFT_CONTROL I`, `mt LEFT_ALT E`, `mt LEFT_GUI A`), right `19/20/21/22` mirrored =
+  Cmd/Option/Ctrl/Shift (`mt RIGHT_GUI H`, `mt RIGHT_ALT T`, `mt RIGHT_CONTROL S`,
+  `mt RIGHT_SHIFT N`). Positions `13/14/21/22` were left as `&trans` since they already
+  match base (Shift/Ctrl). Letter taps at `15/16/19/20` are unchanged (`E`/`A`/`H`/`T`) —
+  only the hold behavior changed. **Kanata not touched** — kanata dropped the macOS layer
+  entirely (Windows-only), so there's nothing to mirror this into; documented here per the
+  "must document divergence" sync policy.
+- **ZMK-only, 2026-09-28:** pos `24` (bottom-left of left half, `base_layer_macos` only —
+  base `BASE` layer keeps `&none` there) set to `&kp GLOBE`. `GLOBE` is ZMK's native
+  keycode for the Apple Globe/Fn key (`dt-bindings/zmk/keys.h`, Consumer usage `0x029D`,
+  `C_AC_NEXT_KEYBOARD_LAYOUT_SELECT`) — the exact HID usage macOS recognizes to drive
+  Globe-key behavior (emoji picker, dictation, input-source switch, Fn-row overlay).
+  Kanata not touched — Windows has no equivalent Globe key and kanata has no macOS layer.
 
 ## Kanata on Windows (autostart)
 
