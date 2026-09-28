@@ -84,6 +84,18 @@ backporting to the other.
   `C_AC_NEXT_KEYBOARD_LAYOUT_SELECT`) — the exact HID usage macOS recognizes to drive
   Globe-key behavior (emoji picker, dictation, input-source switch, Fn-row overlay).
   Kanata not touched — Windows has no equivalent Globe key and kanata has no macOS layer.
+- **ZMK-only bugfix, 2026-09-28:** `nav_layer_macos` (layer 3) was almost entirely
+  `&trans` — only the word/desktop-jump overrides (pos `1/2/4/5`) had been filled in when
+  the layer was first created. Plain arrows, mouse move/scroll, Home/End, and clicks were
+  left transparent, so holding the NAV thumb key in `BASE_MACOS` fell through to
+  `base_layer_macos` (also `&trans` at those spots) and then to `base_layer`'s real
+  letter/mod-tap keys — i.e. holding NAV and pressing what should be an arrow key typed a
+  base-layer letter instead. Fixed by mirroring `nav_layer`'s full bindings into
+  `nav_layer_macos` (arrows, `msc SCRL_*`, `mmv MOVE_*`, `mkp *CLK`, Home/End all
+  identical — OS-agnostic HID usages), keeping only the already-correct mac-flavored
+  word/desktop-jump modifiers at `1/2/4/5` (`LC(LEFT)`=Spaces-left, `LA(LEFT)`=word-back,
+  `LA(RIGHT)`=word-forward, `LC(RIGHT)`=Spaces-right). Kanata not touched — no macOS
+  layer to mirror into.
 
 ## Kanata on Windows (autostart)
 
